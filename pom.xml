@@ -4,12 +4,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.neverpile</groupId>
-  <artifactId>pre-signed-url-support</artifactId>
+  <artifactId>url-crypto-kit</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>pre-signed-url-support</name>
-  <description>neverpile pre-signed-url support</description>
+  <name>url-crypto-kit</name>
+  <description>neverpile url cryptography kit</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,6 +42,12 @@
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 

@@ -1,4 +1,4 @@
-package com.neverpile.psu;
+package com.neverpile.urlcrypto;
 
 import java.security.GeneralSecurityException;
 import java.time.Duration;
@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
  * The PreSignedUrlCryptoKit handles the cryptographical part of pre-signed-URL generation and
  * verification.
  */
-public interface PreSignedUrlCryptoKit {
+public interface UrlCryptoKit {
   public static final String DURATION = "X-NPE-PSU-Duration";
   public static final String CREDENTIAL = "X-NPE-PSU-Credential";
   public static final String EXPIRES = "X-NPE-PSU-Expires";
@@ -46,4 +46,12 @@ public interface PreSignedUrlCryptoKit {
    * @throws TokenExpiredException if the pre-signed request has expired
    */
   void validatePreSignedRequest(final PreSignedRequest preSignedRequest, final HttpServletRequest request);
+
+  /**
+   * Return whether the given request contains a pre-signed request.
+   * 
+   * @param request the incoming request
+   * @return <code>true</code> if the request is pre-signed
+   */
+  boolean isPreSigned(HttpServletRequest request);
 }

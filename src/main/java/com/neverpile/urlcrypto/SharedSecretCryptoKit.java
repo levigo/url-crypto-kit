@@ -1,9 +1,7 @@
-package com.neverpile.psu;
+package com.neverpile.urlcrypto;
 
 import static java.nio.charset.StandardCharsets.*;
-import static java.time.Duration.parse;
 import static java.time.ZonedDateTime.*;
-import static java.time.ZonedDateTime.from;
 import static java.util.stream.Collectors.*;
 
 import java.nio.charset.StandardCharsets;
@@ -22,6 +20,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -35,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -50,38 +49,42 @@ import org.springframework.web.util.UriUtils;
  * verification.
  */
 @Component
-@ConfigurationProperties(prefix = "neverpile-eureka.pre-signed-urls", ignoreUnknownFields = true)
-public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
-  private static final Logger log = LoggerFactory.getLogger(SharedSecretPsuCryptoKit.class);
+public class SharedSecretCryptoKit implements UrlCryptoKit {
+  private static final Logger log = LoggerFactory.getLogger(SharedSecretCryptoKit.class);
 
-  public static final String DURATION = "X-NPE-PSU-Duration";
-  public static final String CREDENTIAL = "X-NPE-PSU-Credential";
-  public static final String EXPIRES = "X-NPE-PSU-Expires";
-  public static final String SIGNATURE = "X-NPE-PSU-Signature";
-  static final String DATE_PATTERN = "yyyyMMddHHmmss";
+  private static final String ENCRYPTION_TRANSFORM = "AES/CBC/PKCS5Padding";
+  private static final String AESALGO = "AES";
+  private static final String HMACALGO = "HmacSHA256";
 
-  private final String ALGO = "AES/CBC/PKCS5Padding";
-  private final String AESALGO = "AES";
-  private final String HMACALGO = "HmacSHA256";
-  private final int ivSize = 16;
-  private final int keySize = 16;
+  private static final int IV_SIZE = 16;
+  private static final int KEY_SIZE = 16;
 
   private final DateTimeFormatter pattern = DateTimeFormatter.ofPattern(DATE_PATTERN).withZone(ZoneOffset.UTC);
 
-  private final SecureRandom random;
+  private final SecureRandom random = new SecureRandom();
 
-  private String secretKey;
-  private boolean enabled;
-  private String[] patterns;
+  @Autowired
+  private UrlCryptoConfiguration configuration;
 
-  public SharedSecretPsuCryptoKit() {
-    this.random = new SecureRandom();
-  }
+  private byte[] keyBytes;
 
   @PostConstruct
-  public void init() {
-    if (null == secretKey || secretKey.equals(""))
-      log.error("The secret key hasn't been configured. Using Pre-Signed-URLs is not safe!");
+  public void init() throws NoSuchAlgorithmException {
+    String secretKey;
+    if (null == configuration.getSharedSecret().getSecretKey()
+        || configuration.getSharedSecret().getSecretKey().equals("")) {
+      secretKey = UUID.randomUUID().toString();
+
+      log.warn("The secret key hasn't been configured - using randomly generated key {}. "
+          + "Pre-Signed-URLs will not remain valid across server restarts", secretKey);
+    } else
+      secretKey = configuration.getSharedSecret().getSecretKey();
+
+    // hash secret key into bytes used for encryption and HMAC.
+    keyBytes = new byte[KEY_SIZE];
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+    md.update(secretKey.getBytes(StandardCharsets.UTF_8));
+    System.arraycopy(md.digest(), 0, keyBytes, 0, keyBytes.length);
   }
 
   /**
@@ -92,11 +95,11 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
    *           using the SHA256 hash function.
    */
   private String buildSignature(final String... parts) throws GeneralSecurityException {
-    Mac sha256_HMAC = Mac.getInstance(this.HMACALGO);
-    Key secretKey = generateHashedSecretKey(this.HMACALGO);
-    sha256_HMAC.init(secretKey);
+    Mac hmac = Mac.getInstance(HMACALGO);
+    Key secretKey = new SecretKeySpec(keyBytes, HMACALGO);
+    hmac.init(secretKey);
 
-    return new String(Hex.encode(sha256_HMAC.doFinal(String.join("", parts).getBytes(StandardCharsets.UTF_8))));
+    return new String(Hex.encode(hmac.doFinal(String.join("", parts).getBytes(StandardCharsets.UTF_8))));
   }
 
   /**
@@ -109,19 +112,19 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
   private String encrypt(final String plaintext) throws GeneralSecurityException {
     byte plaintextBytes[] = compress(plaintext.getBytes(StandardCharsets.UTF_8));
 
-    Key secretKeySpec = generateHashedSecretKey(this.AESALGO);
+    Key secretKeySpec = new SecretKeySpec(keyBytes, AESALGO);
     byte[] salt = generateRandomIv();
     IvParameterSpec ivParameterSpec = new IvParameterSpec(salt);
 
     // Encrypt.
-    Cipher cipher = Cipher.getInstance(this.ALGO);
+    Cipher cipher = Cipher.getInstance(ENCRYPTION_TRANSFORM);
     cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
     byte[] encrypted = cipher.doFinal(plaintextBytes);
 
     // Combine IV and encrypted part.
-    byte[] encryptedIVAndText = new byte[this.ivSize + encrypted.length];
-    System.arraycopy(salt, 0, encryptedIVAndText, 0, this.ivSize);
-    System.arraycopy(encrypted, 0, encryptedIVAndText, this.ivSize, encrypted.length);
+    byte[] encryptedIVAndText = new byte[IV_SIZE + encrypted.length];
+    System.arraycopy(salt, 0, encryptedIVAndText, 0, IV_SIZE);
+    System.arraycopy(encrypted, 0, encryptedIVAndText, IV_SIZE, encrypted.length);
 
     return Base64.getEncoder().encodeToString(encryptedIVAndText);
   }
@@ -138,7 +141,7 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
   }
 
   /**
-   * Takes a byte and decrypt it using AES/CBC/PKCS5PADDING as transformation
+   * Decrypt a byte array of ciphertext and decrypt it using AES/CBC/PKCS5PADDING.
    *
    * @param ciphertext the ciphertext
    * @return the plaintext
@@ -146,20 +149,20 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
    * @throws DataFormatException on compresstion-related failures
    */
   private String decrypt(final byte[] ciphertext) throws GeneralSecurityException, DataFormatException {
-    Key secretKeySpec = generateHashedSecretKey(this.AESALGO);
+    Key secretKeySpec = new SecretKeySpec(keyBytes, AESALGO);
 
     // Extract IV.
-    byte[] iv = new byte[this.ivSize];
+    byte[] iv = new byte[IV_SIZE];
     System.arraycopy(ciphertext, 0, iv, 0, iv.length);
     IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
     // Extract encrypted part.
-    int encryptedSize = ciphertext.length - this.ivSize;
+    int encryptedSize = ciphertext.length - IV_SIZE;
     byte[] encryptedBytes = new byte[encryptedSize];
-    System.arraycopy(ciphertext, this.ivSize, encryptedBytes, 0, encryptedSize);
+    System.arraycopy(ciphertext, IV_SIZE, encryptedBytes, 0, encryptedSize);
 
     // Decrypt.
-    Cipher cipherDecrypt = Cipher.getInstance(this.ALGO);
+    Cipher cipherDecrypt = Cipher.getInstance(ENCRYPTION_TRANSFORM);
     cipherDecrypt.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
     byte[] decrypted = cipherDecrypt.doFinal(encryptedBytes);
 
@@ -188,23 +191,8 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
     return Arrays.copyOf(result, decompressed);
   }
 
-  /**
-   * @param algorithm the algorithm name
-   * @return the hashed key
-   * @throws NoSuchAlgorithmException Can be used to construct a SecretKey from a 16 byte long byte
-   *           array and the specified algorithm. The byte array used is generated using the
-   *           MessageDigest.class, the SHA-256 algorithm and the secretKey.
-   */
-  private Key generateHashedSecretKey(final String algorithm) throws NoSuchAlgorithmException {
-    byte[] keyBytes = new byte[this.keySize];
-    MessageDigest md = MessageDigest.getInstance("SHA-256");
-    md.update(getSecretKey().getBytes(StandardCharsets.UTF_8));
-    System.arraycopy(md.digest(), 0, keyBytes, 0, keyBytes.length);
-    return new SecretKeySpec(keyBytes, algorithm);
-  }
-
   private ZonedDateTime getExpiryTime(final HttpServletRequest request) {
-    return parseExpiryTime(request.getParameter(SharedSecretPsuCryptoKit.EXPIRES));
+    return parseExpiryTime(request.getParameter(SharedSecretCryptoKit.EXPIRES));
   }
 
   // Visible for testing
@@ -223,37 +211,16 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
    * @return byte[] with random content
    */
   private byte[] generateRandomIv() {
-    byte[] iv = new byte[this.ivSize];
+    byte[] iv = new byte[IV_SIZE];
     random.nextBytes(iv);
     return iv;
   }
 
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(final boolean enabled) {
-    this.enabled = enabled;
-  }
-
-  public String[] getPatterns() {
-    return patterns;
-  }
-
-  public void setPatterns(final String[] patterns) {
-    this.patterns = patterns;
-  }
-
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  public void setSecretKey(final String secretKey) {
-    this.secretKey = secretKey;
-  }
-
-  /* (non-Javadoc)
-   * @see com.neverpile.psu.PreSignedUrlCryptoKit#generatePreSignedUrl(java.time.Duration, java.lang.String)
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.neverpile.psu.PreSignedUrlCryptoKit#generatePreSignedUrl(java.time.Duration,
+   * java.lang.String)
    */
   public String generatePreSignedUrl(final Duration expiryTime, final String requestedUrl)
       throws GeneralSecurityException {
@@ -282,7 +249,7 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
   }
 
   /**
-   * Generates a Pre Sign Url from the given parameters.
+   * Generates a pre-signed URL from the given parameters.
    *
    * @param expiresAt format: "yyyy-MM-dd HH:mm:ss.SSSSSS"
    */
@@ -290,17 +257,20 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
       final String expiresAt, final String signature) {
 
     Map<String, String> responseUrlParams = new HashMap<>();
-    responseUrlParams.put(SharedSecretPsuCryptoKit.CREDENTIAL, encryptedAuthorization);
-    responseUrlParams.put(SharedSecretPsuCryptoKit.EXPIRES, expiresAt);
-    responseUrlParams.put(SharedSecretPsuCryptoKit.SIGNATURE, signature);
+    responseUrlParams.put(SharedSecretCryptoKit.CREDENTIAL, encryptedAuthorization);
+    responseUrlParams.put(SharedSecretCryptoKit.EXPIRES, expiresAt);
+    responseUrlParams.put(SharedSecretCryptoKit.SIGNATURE, signature);
 
     return responseUrlParams.keySet().stream().map(
         key -> key + "=" + UriUtils.encode(responseUrlParams.get(key), UTF_8)).collect(
             joining("&", requestedUrl + "?", ""));
   }
 
-  /* (non-Javadoc)
-   * @see com.neverpile.psu.PreSignedUrlCryptoKit#getPreSignedRequest(javax.servlet.http.HttpServletRequest)
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.neverpile.psu.PreSignedUrlCryptoKit#getPreSignedRequest(javax.servlet.http.
+   * HttpServletRequest)
    */
   public PreSignedRequest getPreSignedRequest(final HttpServletRequest request) {
     String path = request.getRequestURL().toString();
@@ -310,11 +280,10 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
     ZonedDateTime expiryTime = getExpiryTime(request);
     try {
       // Decrypt Authorities
-      String encodedAuthentication = request.getParameter(PreSignedUrlCryptoKit.CREDENTIAL);
+      String encodedAuthentication = request.getParameter(UrlCryptoKit.CREDENTIAL);
 
       // Signature
-      String signature = buildSignature(path, request.getParameter(PreSignedUrlCryptoKit.EXPIRES),
-          encodedAuthentication);
+      String signature = buildSignature(path, request.getParameter(UrlCryptoKit.EXPIRES), encodedAuthentication);
 
       String decryptedAuthentication = decrypt(Base64.getDecoder().decode(encodedAuthentication));
       String[] authentication = decryptedAuthentication.split("\n");
@@ -333,8 +302,11 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
     return psuPayload;
   }
 
-  /* (non-Javadoc)
-   * @see com.neverpile.psu.PreSignedUrlCryptoKit#validatePreSignedRequest(com.neverpile.psu.PreSignedRequest, javax.servlet.http.HttpServletRequest)
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.neverpile.psu.PreSignedUrlCryptoKit#validatePreSignedRequest(com.neverpile.psu.
+   * PreSignedRequest, javax.servlet.http.HttpServletRequest)
    */
   @Override
   public void validatePreSignedRequest(final PreSignedRequest preSignedRequest, final HttpServletRequest request) {
@@ -342,8 +314,18 @@ public class SharedSecretPsuCryptoKit implements PreSignedUrlCryptoKit {
       throw new TokenExpiredException("The pre-signed URL has expired");
     }
 
-    if (!preSignedRequest.getSignature().equals(request.getParameter(PreSignedUrlCryptoKit.SIGNATURE))) {
+    if (!preSignedRequest.getSignature().equals(request.getParameter(UrlCryptoKit.SIGNATURE))) {
       throw new InvalidSignatureException("The provided signature is invalid");
     }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.neverpile.urlcrypto.UrlCryptoKit#isPreSigned(javax.servlet.http.HttpServletRequest)
+   */
+  @Override
+  public boolean isPreSigned(final HttpServletRequest request) {
+    return request.getParameter(UrlCryptoKit.SIGNATURE) != null;
   }
 }

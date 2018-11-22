@@ -1,4 +1,4 @@
-package com.neverpile.psu.springsecurity;
+package com.neverpile.urlcrypto.springsecurity;
 
 import java.util.Enumeration;
 import java.util.HashMap;

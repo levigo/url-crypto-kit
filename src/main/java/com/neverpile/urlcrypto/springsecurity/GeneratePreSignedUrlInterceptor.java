@@ -1,7 +1,8 @@
-package com.neverpile.psu.springsecurity;
+package com.neverpile.urlcrypto.springsecurity;
 
 import static java.time.Duration.*;
 
+import java.lang.annotation.Annotation;
 import java.time.Duration;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,13 +13,17 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.neverpile.psu.PreSignedUrlCryptoKit;
-import com.neverpile.psu.PreSignedUrlEnabled;
+import com.neverpile.urlcrypto.UrlCryptoConfiguration;
+import com.neverpile.urlcrypto.UrlCryptoKit;
 
 public class GeneratePreSignedUrlInterceptor implements HandlerInterceptor {
 
   @Autowired
-  private PreSignedUrlCryptoKit crypto;
+  private UrlCryptoKit crypto;
+
+  @Autowired
+  private UrlCryptoConfiguration config;
+
 
   /**
    * This Method execute before the execution of the target resource. If the request contains the
@@ -30,17 +35,28 @@ public class GeneratePreSignedUrlInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler)
       throws Exception {
-    String requestedExpiryTime = request.getParameter(PreSignedUrlCryptoKit.DURATION);
+    String requestedExpiryTime = request.getParameter(UrlCryptoKit.DURATION);
     if (null != requestedExpiryTime) {
       if (handler instanceof HandlerMethod) {
-        PreSignedUrlEnabled psuEnabled = ((HandlerMethod) handler).getMethodAnnotation(PreSignedUrlEnabled.class);
-        if (null == psuEnabled) {
-          throw new AuthenticationException("Pre Sign URLs(PSU) not activated for this method") {
+        @SuppressWarnings("unchecked")
+        Class<? extends Annotation> psuEnablingAnnotation = (Class<? extends Annotation>) Class.forName(
+            config.getEnablePreSignedUrlAnnotationClass());
+
+        Annotation psuEnabled = null != psuEnablingAnnotation
+            ? ((HandlerMethod) handler).getMethodAnnotation(psuEnablingAnnotation)
+            : null;
+        if (null == psuEnabled && null != psuEnablingAnnotation) {
+          throw new AuthenticationException("Pre Sign URLs(PSU) not activated for " + handler + ": not annotated with @"
+              + psuEnablingAnnotation.getName()) {
             private static final long serialVersionUID = 1L;
           };
         } else {
           Duration expiryTime = parse(requestedExpiryTime);
-          
+
+          // limit validity to configured maximum
+          if (null != config.getMaxPreSignedValidity() && expiryTime.compareTo(config.getMaxPreSignedValidity()) > 0)
+            expiryTime = config.getMaxPreSignedValidity();
+
           String url = crypto.generatePreSignedUrl(expiryTime, request.getRequestURL().toString());
 
           response.setContentType("text/uri-list");

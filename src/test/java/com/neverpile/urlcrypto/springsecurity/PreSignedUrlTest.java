@@ -1,4 +1,4 @@
-package com.neverpile.psu.springsecurity;
+package com.neverpile.urlcrypto.springsecurity;
 
 import static java.nio.charset.StandardCharsets.*;
 import static org.assertj.core.api.Assertions.*;
@@ -24,20 +24,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.neverpile.psu.SharedSecretPsuCryptoKit;
+import com.neverpile.urlcrypto.SharedSecretCryptoKit;
 
 import io.restassured.RestAssured;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "neverpile-eureka.pre-signed-urls.enabled=true", "neverpile-eureka.pre-signed-urls.secret-key=foobar"
+    "neverpile.url-crypto.shared-secret.enabled=true", 
+    "neverpile.url-crypto.max-pre-signed-validity=PT24H",
+    "neverpile.url-crypto.shared-secret.secret-key=foobar"
 })
 public class PreSignedUrlTest {
   @LocalServerPort
   int port;
 
   @Autowired
-  SharedSecretPsuCryptoKit kit;
+  SharedSecretCryptoKit kit;
 
   @Before
   public void setupRestAssured() {
@@ -85,6 +87,25 @@ public class PreSignedUrlTest {
     Map<String, String> queryParams = parseQuery(psu);
 
     // validate expiry time
+    assertThat(kit.parseExpiryTime(queryParams.get("X-NPE-PSU-Expires"))) //
+        .isAfter(startOfRequest.plusDays(1).minusMinutes(1)) //
+        .isBefore(startOfRequest.plusDays(1).plusMinutes(1));
+  }
+  
+  @Test
+  public void testThat_PSUValidityHonorsMaxValue() throws Exception {
+    ZonedDateTime startOfRequest = ZonedDateTime.now(ZoneOffset.UTC);
+
+    // we request two days but expect to be given only 24h
+    URI psu = createPSU("/foo", "PT48H");
+
+    assertThat(psu) //
+        .hasParameter("X-NPE-PSU-Expires") //
+    ;
+
+    Map<String, String> queryParams = parseQuery(psu);
+
+    // validate expiry time (must be ~24H)
     assertThat(kit.parseExpiryTime(queryParams.get("X-NPE-PSU-Expires"))) //
         .isAfter(startOfRequest.plusDays(1).minusMinutes(1)) //
         .isBefore(startOfRequest.plusDays(1).plusMinutes(1));

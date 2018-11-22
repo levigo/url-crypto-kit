@@ -1,4 +1,4 @@
-package com.neverpile.psu.springsecurity;
+package com.neverpile.urlcrypto.springsecurity;
 
 import java.io.IOException;
 
@@ -18,12 +18,12 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.neverpile.psu.PreSignedRequest;
-import com.neverpile.psu.PreSignedUrlCryptoKit;
+import com.neverpile.urlcrypto.PreSignedRequest;
+import com.neverpile.urlcrypto.UrlCryptoKit;
 
 public class ValidatePreSignedUrlFilter extends OncePerRequestFilter {
   @Autowired
-  private PreSignedUrlCryptoKit crypto;
+  private UrlCryptoKit crypto;
 
   private AuthenticationManager authenticationManager;
 
@@ -41,9 +41,7 @@ public class ValidatePreSignedUrlFilter extends OncePerRequestFilter {
       final FilterChain chain) throws ServletException, IOException {
     final boolean debug = this.logger.isDebugEnabled();
 
-    String requestSignature = request.getParameter(PreSignedUrlCryptoKit.SIGNATURE);
-
-    if (requestSignature == null) {
+    if (!crypto.isPreSigned(request)) {
       chain.doFilter(request, response);
       return;
     }

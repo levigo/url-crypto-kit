@@ -1,10 +1,10 @@
-package com.neverpile.psu.springsecurity;
+package com.neverpile.urlcrypto.springsecurity;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.neverpile.psu.PreSignedUrlEnabled;
+import com.neverpile.urlcrypto.PreSignedUrlEnabled;
 
 @RestController
 public class DummyResource {

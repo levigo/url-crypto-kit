@@ -1,4 +1,4 @@
-package com.neverpile.psu;
+package com.neverpile.urlcrypto;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

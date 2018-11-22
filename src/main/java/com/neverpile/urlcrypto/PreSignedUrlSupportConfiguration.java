@@ -1,4 +1,4 @@
-package com.neverpile.psu;
+package com.neverpile.urlcrypto;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
@@ -18,8 +18,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.neverpile.psu.springsecurity.GeneratePreSignedUrlInterceptor;
-import com.neverpile.psu.springsecurity.ValidatePreSignedUrlFilter;
+import com.neverpile.urlcrypto.springsecurity.GeneratePreSignedUrlInterceptor;
+import com.neverpile.urlcrypto.springsecurity.ValidatePreSignedUrlFilter;
 
 /**
  * The PreSignedUrlSupportConfiguration class manages the PSUInterceptors. New interpreters must be
@@ -27,7 +27,6 @@ import com.neverpile.psu.springsecurity.ValidatePreSignedUrlFilter;
  * "neverpile-eureka.pre-signed-urls.enabled" variable in the properties.
  */
 @Configuration
-@ConditionalOnProperty(name = "neverpile-eureka.pre-signed-urls.enabled", havingValue = "true", matchIfMissing = false)
 @ComponentScan
 public class PreSignedUrlSupportConfiguration {
   @Value("${neverpile-eureka.pre-signed-urls.patterns:/**}")
@@ -40,7 +39,7 @@ public class PreSignedUrlSupportConfiguration {
     class PSURequestedMatcher implements RequestMatcher {
       @Override
       public boolean matches(final HttpServletRequest request) {
-        return null != request.getParameter(PreSignedUrlCryptoKit.SIGNATURE)
+        return null != request.getParameter(UrlCryptoKit.SIGNATURE)
             // don't match requests to the error handler!
             && null == request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
       }
@@ -83,5 +82,11 @@ public class PreSignedUrlSupportConfiguration {
   @Bean
   WebSecurityConfigurerAdapter psuWebSecurityConfigurerAdapter() {
     return new WebSecurityConfigurerAdapterExtension();
+  }
+  
+  @Bean
+  @ConditionalOnProperty(name = "neverpile.url-crypto.shared-secret.enabled", havingValue = "true", matchIfMissing = false)
+  SharedSecretCryptoKit sharedSecretCryptoKit() {
+    return new SharedSecretCryptoKit();
   }
 }

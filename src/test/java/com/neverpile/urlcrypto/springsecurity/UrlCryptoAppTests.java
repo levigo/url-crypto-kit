@@ -1,4 +1,4 @@
-package com.neverpile.psu.springsecurity;
+package com.neverpile.urlcrypto.springsecurity;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class PreSignedUrlSupportApplicationTests {
+public class UrlCryptoAppTests {
 
 	@Test
 	public void contextLoads() {

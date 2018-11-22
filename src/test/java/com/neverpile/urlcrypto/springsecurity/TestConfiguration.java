@@ -1,4 +1,4 @@
-package com.neverpile.psu.springsecurity;
+package com.neverpile.urlcrypto.springsecurity;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -10,7 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-import com.neverpile.psu.PreSignedUrlSupportConfiguration;
+import com.neverpile.urlcrypto.PreSignedUrlSupportConfiguration;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
