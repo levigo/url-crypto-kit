@@ -24,7 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.neverpile.urlcrypto.SharedSecretCryptoKit;
+import com.neverpile.urlcrypto.impl.SharedSecretCryptoKit;
 
 import io.restassured.RestAssured;
 

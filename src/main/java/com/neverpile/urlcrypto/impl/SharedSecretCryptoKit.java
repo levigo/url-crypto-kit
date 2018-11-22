@@ -1,4 +1,4 @@
-package com.neverpile.urlcrypto;
+package com.neverpile.urlcrypto.impl;
 
 import static java.nio.charset.StandardCharsets.*;
 import static java.time.ZonedDateTime.*;
@@ -43,6 +43,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
+
+import com.neverpile.urlcrypto.InvalidSignatureException;
+import com.neverpile.urlcrypto.PreSignedRequest;
+import com.neverpile.urlcrypto.TokenExpiredException;
+import com.neverpile.urlcrypto.UrlCryptoKit;
+import com.neverpile.urlcrypto.config.UrlCryptoConfiguration;
 
 /**
  * The PreSignedUrlCryptoKit handles the cryptographical part of pre-signed-URL generation and

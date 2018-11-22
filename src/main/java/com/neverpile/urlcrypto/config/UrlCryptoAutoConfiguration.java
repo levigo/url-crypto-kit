@@ -1,4 +1,4 @@
-package com.neverpile.urlcrypto;
+package com.neverpile.urlcrypto.config;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +20,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.neverpile.urlcrypto.UrlCryptoKit;
+import com.neverpile.urlcrypto.impl.SharedSecretCryptoKit;
 import com.neverpile.urlcrypto.springsecurity.GeneratePreSignedUrlInterceptor;
 import com.neverpile.urlcrypto.springsecurity.ValidatePreSignedUrlFilter;
 

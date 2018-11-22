@@ -10,7 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-import com.neverpile.urlcrypto.UrlCryptoAutoConfiguration;
+import com.neverpile.urlcrypto.config.UrlCryptoAutoConfiguration;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration

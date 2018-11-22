@@ -10,9 +10,9 @@ import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 
-import com.neverpile.urlcrypto.SharedSecretCryptoKit;
-import com.neverpile.urlcrypto.UrlCryptoAutoConfiguration;
 import com.neverpile.urlcrypto.UrlCryptoKit;
+import com.neverpile.urlcrypto.config.UrlCryptoAutoConfiguration;
+import com.neverpile.urlcrypto.impl.SharedSecretCryptoKit;
 
 public class AutoConfigTest {
   private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner() //

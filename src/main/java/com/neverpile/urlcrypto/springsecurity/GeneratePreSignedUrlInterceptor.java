@@ -13,8 +13,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.neverpile.urlcrypto.UrlCryptoConfiguration;
 import com.neverpile.urlcrypto.UrlCryptoKit;
+import com.neverpile.urlcrypto.config.UrlCryptoConfiguration;
 
 public class GeneratePreSignedUrlInterceptor implements HandlerInterceptor {
 
