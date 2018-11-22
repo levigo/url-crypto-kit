@@ -1,6 +1,9 @@
 package com.neverpile.urlcrypto;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -17,6 +20,8 @@ public class UrlCryptoConfiguration {
   private final SharedSecretConfiguration sharedSecret = new SharedSecretConfiguration();
   
   private Duration maxPreSignedValidity = Duration.ofDays(30);
+  
+  private List<String> pathPatterns = new ArrayList<>(Arrays.asList("/**"));
   
   public static class SharedSecretConfiguration {
     private boolean enabled;
@@ -59,5 +64,13 @@ public class UrlCryptoConfiguration {
 
   public void setMaxPreSignedValidity(final Duration maxPreSignedValidity) {
     this.maxPreSignedValidity = maxPreSignedValidity;
+  }
+
+  public List<String> getPathPatterns() {
+    return pathPatterns;
+  }
+
+  public void setPathPatterns(final List<String> pathPatterns) {
+    this.pathPatterns = pathPatterns;
   }
 }

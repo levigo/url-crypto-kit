@@ -3,11 +3,13 @@ package com.neverpile.urlcrypto;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,13 +29,18 @@ import com.neverpile.urlcrypto.springsecurity.ValidatePreSignedUrlFilter;
  * "neverpile-eureka.pre-signed-urls.enabled" variable in the properties.
  */
 @Configuration
-@ComponentScan
-public class PreSignedUrlSupportConfiguration {
-  @Value("${neverpile-eureka.pre-signed-urls.patterns:/**}")
-  private final String[] pathPatterns = new String[]{
-      "/**"
-  };
+@ConditionalOnWebApplication
+@Import(UrlCryptoConfiguration.class)
+public class UrlCryptoAutoConfiguration {
+  @Autowired
+  private UrlCryptoConfiguration config;
 
+  @Bean
+  @ConditionalOnProperty(name = "neverpile.url-crypto.shared-secret.enabled", havingValue = "true", matchIfMissing = false)
+  SharedSecretCryptoKit sharedSecretCryptoKit() {
+    return new SharedSecretCryptoKit();
+  }
+  
   @Order(4)
   private final class WebSecurityConfigurerAdapterExtension extends WebSecurityConfigurerAdapter {
     class PSURequestedMatcher implements RequestMatcher {
@@ -65,28 +72,25 @@ public class PreSignedUrlSupportConfiguration {
   }
 
   @Bean
+  @ConditionalOnBean(UrlCryptoKit.class)
   public GeneratePreSignedUrlInterceptor psuFilter() {
     return new GeneratePreSignedUrlInterceptor();
   }
 
   @Bean
+  @ConditionalOnBean(UrlCryptoKit.class)
   WebMvcConfigurer psuWebMvcConfigurer() {
     return new WebMvcConfigurer() {
       @Override
       public void addInterceptors(final InterceptorRegistry registry) {
-        registry.addInterceptor(psuFilter()).addPathPatterns(pathPatterns);
+        registry.addInterceptor(psuFilter()).addPathPatterns(config.getPathPatterns());
       }
     };
   }
 
   @Bean
+  @ConditionalOnBean(UrlCryptoKit.class)
   WebSecurityConfigurerAdapter psuWebSecurityConfigurerAdapter() {
     return new WebSecurityConfigurerAdapterExtension();
-  }
-  
-  @Bean
-  @ConditionalOnProperty(name = "neverpile.url-crypto.shared-secret.enabled", havingValue = "true", matchIfMissing = false)
-  SharedSecretCryptoKit sharedSecretCryptoKit() {
-    return new SharedSecretCryptoKit();
   }
 }

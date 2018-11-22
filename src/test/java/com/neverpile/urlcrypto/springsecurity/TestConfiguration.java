@@ -10,13 +10,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-import com.neverpile.urlcrypto.PreSignedUrlSupportConfiguration;
+import com.neverpile.urlcrypto.UrlCryptoAutoConfiguration;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
 @EnableWebSecurity
 @Import({
-    PreSignedUrlSupportConfiguration.class, DummyResource.class
+    UrlCryptoAutoConfiguration.class, DummyResource.class
 })
 @Order(SecurityProperties.BASIC_AUTH_ORDER)
 public class TestConfiguration extends WebSecurityConfigurerAdapter {
