@@ -31,7 +31,6 @@ import com.neverpile.urlcrypto.springsecurity.ValidatePreSignedUrlFilter;
  * "neverpile-eureka.pre-signed-urls.enabled" variable in the properties.
  */
 @Configuration
-@ConditionalOnWebApplication
 @Import(UrlCryptoConfiguration.class)
 public class UrlCryptoAutoConfiguration {
   @Autowired
@@ -75,12 +74,14 @@ public class UrlCryptoAutoConfiguration {
 
   @Bean
   @ConditionalOnBean(UrlCryptoKit.class)
+  @ConditionalOnWebApplication
   public GeneratePreSignedUrlInterceptor psuFilter() {
     return new GeneratePreSignedUrlInterceptor();
   }
 
   @Bean
   @ConditionalOnBean(UrlCryptoKit.class)
+  @ConditionalOnWebApplication
   WebMvcConfigurer psuWebMvcConfigurer() {
     return new WebMvcConfigurer() {
       @Override
@@ -92,6 +93,7 @@ public class UrlCryptoAutoConfiguration {
 
   @Bean
   @ConditionalOnBean(UrlCryptoKit.class)
+  @ConditionalOnWebApplication
   WebSecurityConfigurerAdapter psuWebSecurityConfigurerAdapter() {
     return new WebSecurityConfigurerAdapterExtension();
   }

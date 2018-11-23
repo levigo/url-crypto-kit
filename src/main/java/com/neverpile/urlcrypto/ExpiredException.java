@@ -5,10 +5,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class TokenExpiredException extends AuthenticationException {
+public class ExpiredException extends AuthenticationException {
   private static final long serialVersionUID = 1L;
 
-  public TokenExpiredException(final String msg) {
+  public ExpiredException(final String msg) {
     super(msg);
   }
 }

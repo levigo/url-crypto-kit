@@ -44,9 +44,9 @@ import org.springframework.security.crypto.codec.Hex;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
 
+import com.neverpile.urlcrypto.ExpiredException;
 import com.neverpile.urlcrypto.InvalidSignatureException;
 import com.neverpile.urlcrypto.PreSignedRequest;
-import com.neverpile.urlcrypto.TokenExpiredException;
 import com.neverpile.urlcrypto.UrlCryptoKit;
 import com.neverpile.urlcrypto.config.UrlCryptoConfiguration;
 
@@ -154,18 +154,20 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
    * @throws GeneralSecurityException on any crypto-related failure
    * @throws DataFormatException on compresstion-related failures
    */
-  private String decrypt(final byte[] ciphertext) throws GeneralSecurityException, DataFormatException {
+  private String decrypt(final String ciphertext) throws GeneralSecurityException {
     Key secretKeySpec = new SecretKeySpec(keyBytes, AESALGO);
+
+    byte[] ciphertextBytes = Base64.getDecoder().decode(ciphertext);
 
     // Extract IV.
     byte[] iv = new byte[IV_SIZE];
-    System.arraycopy(ciphertext, 0, iv, 0, iv.length);
+    System.arraycopy(ciphertextBytes, 0, iv, 0, iv.length);
     IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
     // Extract encrypted part.
-    int encryptedSize = ciphertext.length - IV_SIZE;
+    int encryptedSize = ciphertextBytes.length - IV_SIZE;
     byte[] encryptedBytes = new byte[encryptedSize];
-    System.arraycopy(ciphertext, IV_SIZE, encryptedBytes, 0, encryptedSize);
+    System.arraycopy(ciphertextBytes, IV_SIZE, encryptedBytes, 0, encryptedSize);
 
     // Decrypt.
     Cipher cipherDecrypt = Cipher.getInstance(ENCRYPTION_TRANSFORM);
@@ -175,7 +177,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
     return new String(decompress(decrypted), StandardCharsets.UTF_8);
   }
 
-  private byte[] decompress(final byte[] data) throws DataFormatException {
+  private byte[] decompress(final byte[] data) {
     Inflater decompresser = new Inflater();
     decompresser.setInput(data);
 
@@ -183,15 +185,19 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
     int decompressed = 0;
     byte[] result = new byte[data.length];
 
-    while (true) {
-      int resultLength = decompresser.inflate(result, decompressed, chunkSize);
-      decompressed += resultLength;
-      if (resultLength < chunkSize) {
-        decompresser.end();
-        break;
-      }
+    try {
+      while (true) {
+        int resultLength = decompresser.inflate(result, decompressed, chunkSize);
+        decompressed += resultLength;
+        if (resultLength < chunkSize) {
+          decompresser.end();
+          break;
+        }
 
-      result = Arrays.copyOf(result, result.length * 2);
+        result = Arrays.copyOf(result, result.length * 2);
+      }
+    } catch (DataFormatException e) {
+      throw new IllegalArgumentException("Invalid encrypted data", e);
     }
 
     return Arrays.copyOf(result, decompressed);
@@ -228,11 +234,11 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
    * @see com.neverpile.psu.PreSignedUrlCryptoKit#generatePreSignedUrl(java.time.Duration,
    * java.lang.String)
    */
-  public String generatePreSignedUrl(final Duration expiryTime, final String requestedUrl)
+  public String generatePreSignedUrl(final Duration validityDuration, final String requestedUrl)
       throws GeneralSecurityException {
     // Calculate expiry time
-    ZonedDateTime expireTime = from(expiryTime.addTo(now(ZoneOffset.UTC)));
-    String expiresAt = encodeExpiryTime(expireTime);
+    ZonedDateTime expiryTime = from(validityDuration.addTo(now(ZoneOffset.UTC)));
+    String expiresAt = encodeExpiryTime(expiryTime);
 
     // Encrypt Authorities
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -241,10 +247,20 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
 
     // Build Signature
     String signature = buildSignature(requestedUrl, expiresAt, encodedAuthorization);
+    final String encryptedAuthorization = encodedAuthorization;
+    final String expiresAt1 = expiresAt;
+    final String signature1 = signature;
 
-    // Build Pre-Sign Url
-    String url = this.generatePreSignUrl(requestedUrl, encodedAuthorization, expiresAt, signature);
-    return url;
+    // Encode pre-signed Url
+    Map<String, String> params = new HashMap<>();
+    params.put(SharedSecretCryptoKit.CREDENTIAL, encryptedAuthorization);
+    params.put(SharedSecretCryptoKit.EXPIRES, expiresAt1);
+    params.put(SharedSecretCryptoKit.SIGNATURE, signature1);
+
+    // FIXME: this doesn't support URLs with existing query parameters. Is this a problem?
+    return params.keySet().stream() //
+        .map(key -> key + "=" + UriUtils.encode(params.get(key), UTF_8)) //
+        .collect(joining("&", requestedUrl + "?", ""));
   }
 
   private String serializePrincipalAndRoles(final Authentication authentication) {
@@ -252,24 +268,6 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
     builder.append(authentication.getName()).append("\n");
     authentication.getAuthorities().forEach(a -> builder.append(a).append("\n"));
     return builder.toString();
-  }
-
-  /**
-   * Generates a pre-signed URL from the given parameters.
-   *
-   * @param expiresAt format: "yyyy-MM-dd HH:mm:ss.SSSSSS"
-   */
-  private String generatePreSignUrl(final String requestedUrl, final String encryptedAuthorization,
-      final String expiresAt, final String signature) {
-
-    Map<String, String> responseUrlParams = new HashMap<>();
-    responseUrlParams.put(SharedSecretCryptoKit.CREDENTIAL, encryptedAuthorization);
-    responseUrlParams.put(SharedSecretCryptoKit.EXPIRES, expiresAt);
-    responseUrlParams.put(SharedSecretCryptoKit.SIGNATURE, signature);
-
-    return responseUrlParams.keySet().stream().map(
-        key -> key + "=" + UriUtils.encode(responseUrlParams.get(key), UTF_8)).collect(
-            joining("&", requestedUrl + "?", ""));
   }
 
   /*
@@ -286,12 +284,12 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
     ZonedDateTime expiryTime = getExpiryTime(request);
     try {
       // Decrypt Authorities
-      String encodedAuthentication = request.getParameter(UrlCryptoKit.CREDENTIAL);
+      String encryptedCredentials = request.getParameter(UrlCryptoKit.CREDENTIAL);
 
       // Signature
-      String signature = buildSignature(path, request.getParameter(UrlCryptoKit.EXPIRES), encodedAuthentication);
+      String signature = buildSignature(path, request.getParameter(UrlCryptoKit.EXPIRES), encryptedCredentials);
 
-      String decryptedAuthentication = decrypt(Base64.getDecoder().decode(encodedAuthentication));
+      String decryptedAuthentication = decrypt(encryptedCredentials);
       String[] authentication = decryptedAuthentication.split("\n");
 
       String username = authentication[0];
@@ -301,7 +299,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
       }
 
       psuPayload = new PreSignedRequest(expiryTime, username, signature, authorities);
-    } catch (GeneralSecurityException | DataFormatException e) {
+    } catch (GeneralSecurityException e) {
       throw new InternalAuthenticationServiceException("Can't authenticate", e);
     }
 
@@ -317,7 +315,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
   @Override
   public void validatePreSignedRequest(final PreSignedRequest preSignedRequest, final HttpServletRequest request) {
     if (preSignedRequest.getExpiryTime().isBefore(ZonedDateTime.now())) {
-      throw new TokenExpiredException("The pre-signed URL has expired");
+      throw new ExpiredException("The pre-signed URL has expired");
     }
 
     if (!preSignedRequest.getSignature().equals(request.getParameter(UrlCryptoKit.SIGNATURE))) {
@@ -333,5 +331,44 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
   @Override
   public boolean isPreSigned(final HttpServletRequest request) {
     return request.getParameter(UrlCryptoKit.SIGNATURE) != null;
+  }
+
+  /* (non-Javadoc)
+   * @see com.neverpile.urlcrypto.UrlCryptoKit#encryptUrl(java.time.Duration, java.lang.String)
+   */
+  @Override
+  public String encryptUrl(final Duration validityDuration, final String url) throws GeneralSecurityException {
+    // Calculate expiry time
+    String expiresAt;
+    if (null != validityDuration) {
+      ZonedDateTime expireTime = from(validityDuration.addTo(now(ZoneOffset.UTC)));
+      expiresAt = encodeExpiryTime(expireTime);
+    } else {
+      expiresAt = "";
+    }
+
+    return encrypt(expiresAt + "|" + url);
+  }
+
+  /* (non-Javadoc)
+   * @see com.neverpile.urlcrypto.UrlCryptoKit#decryptUrl(java.lang.String)
+   */
+  @Override
+  public String decryptUrl(final String encrypted) throws GeneralSecurityException {
+    String plaintext = decrypt(encrypted);
+
+    String[] parts = plaintext.split("\\|", 2);
+    if (parts.length != 2) {
+      throw new IllegalArgumentException("Invalid encrypted URL");
+    }
+
+    String expiresAt = parts[0];
+    if (!expiresAt.isEmpty()) {
+      ZonedDateTime expiryTime = parseExpiryTime(expiresAt);
+      if (expiryTime.isBefore(ZonedDateTime.now()))
+        throw new ExpiredException("The encrypted URL has expired");
+    }
+
+    return parts[1];
   }
 }

@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener;
 import org.springframework.boot.logging.LogLevel;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
@@ -30,13 +31,26 @@ public class AutoConfigTest {
           assertThat(context.getBean(UrlCryptoKit.class)).isInstanceOf(SharedSecretCryptoKit.class);
         });
   }
-  
+
   @Test
   public void testThat_autoConfigurationIsNotActivatedOnMissingProperty() throws Exception {
     this.contextRunner //
-    .withPropertyValues("neverpile.url-crypto.shared-secret.enabled=false") //
-    .run((context) -> {
-      assertThat(context).doesNotHaveBean(UrlCryptoKit.class);
-    });
+        .withPropertyValues("neverpile.url-crypto.shared-secret.enabled=false") //
+        .run((context) -> {
+          assertThat(context).doesNotHaveBean(UrlCryptoKit.class);
+        });
   }
+
+  @Test
+  public void testThat_autoConfigurationIsActivateForNonWebAppToo() throws Exception {
+    new ApplicationContextRunner() //
+        .withConfiguration(AutoConfigurations.of(UrlCryptoAutoConfiguration.class)) //
+        .withInitializer(new ConditionEvaluationReportLoggingListener(LogLevel.DEBUG)) //
+        .withPropertyValues("neverpile.url-crypto.shared-secret.enabled=true") //
+        .run((context) -> {
+          assertThat(context).hasSingleBean(UrlCryptoKit.class);
+          assertThat(context.getBean(UrlCryptoKit.class)).isInstanceOf(SharedSecretCryptoKit.class);
+        });
+  }
+
 }

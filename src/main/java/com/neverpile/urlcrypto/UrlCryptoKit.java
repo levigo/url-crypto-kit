@@ -20,22 +20,21 @@ public interface UrlCryptoKit {
    * Generate a pre-signed URL for the given requested URL with the the given validity duration.
    * 
    * @param validityDuration the requested validity duration
-   * @param requestedUrl the URL 
+   * @param requestedUrl the URL
    * @return a pre-signed URL
    * @throws GeneralSecurityException
    */
-  String generatePreSignedUrl(final Duration validityDuration, final String requestedUrl)
-      throws GeneralSecurityException;
-  
+  String generatePreSignedUrl(Duration validityDuration, String requestedUrl) throws GeneralSecurityException;
+
   /**
-   * Retrieve pre-singed request information from the given {@link HttpServletRequest}.
+   * Retrieve pre-signed request information from the given {@link HttpServletRequest}.
    * 
-   * @param request the request
-   * @return the details of the request as extracted from the signature
-   * @throws InvalidSignatureException if the request does not contain a pre-signed signature
-   * @throws 
+   * @param request the request @return the details of the request as extracted from the
+   *          signature @throws InvalidSignatureException if the request does not contain a
+   *          pre-signed signature @throws
+   * @return the extracted pre-signed request information
    */
-  PreSignedRequest getPreSignedRequest(final HttpServletRequest request);
+  PreSignedRequest getPreSignedRequest(HttpServletRequest request);
 
   /**
    * Validate the given pre-singed request information against the given {@link HttpServletRequest}.
@@ -43,9 +42,9 @@ public interface UrlCryptoKit {
    * @param preSignedRequest the pre-signed request
    * @param request the servlet request
    * @throws InvalidSignatureException if the signature in the request is invalid
-   * @throws TokenExpiredException if the pre-signed request has expired
+   * @throws ExpiredException if the pre-signed request has expired
    */
-  void validatePreSignedRequest(final PreSignedRequest preSignedRequest, final HttpServletRequest request);
+  void validatePreSignedRequest(PreSignedRequest preSignedRequest, HttpServletRequest request);
 
   /**
    * Return whether the given request contains a pre-signed request.
@@ -54,4 +53,26 @@ public interface UrlCryptoKit {
    * @return <code>true</code> if the request is pre-signed
    */
   boolean isPreSigned(HttpServletRequest request);
+
+  /**
+   * Encrypt the given URL so that it can be decrypted later. Limit the validity period to the given
+   * duration. Do not limit it, if the duration is <code>null</code>.
+   * 
+   * @param validityDuration the validity period for the encrypted URL or <code>null</code> if the validity shall not be limited
+   * @param url the url to encrypt
+   * @return the encrypted URL ciphertext as a Base64 string
+   * @throws GeneralSecurityException 
+   */
+  String encryptUrl(Duration validityDuration, String url) throws GeneralSecurityException;
+
+  /**
+   * Decrypt a URL that has been encrypted using {@link #encryptUrl(Duration, String)}. 
+   * 
+   * @param encrypted the encrypted URL ciphertext as a Base64 string
+   * @return the decrypted URL
+   * @throws  
+   * @throws GeneralSecurityException 
+   * @throws ExpiredException if the encrypted URL has a limited validity which has expired
+   */
+  String decryptUrl(String encrypted) throws GeneralSecurityException;
 }
