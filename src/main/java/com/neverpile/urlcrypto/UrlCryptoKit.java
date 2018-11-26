@@ -22,7 +22,7 @@ public interface UrlCryptoKit {
    * @param validityDuration the requested validity duration
    * @param requestedUrl the URL
    * @return a pre-signed URL
-   * @throws GeneralSecurityException
+   * @throws GeneralSecurityException on any crypto-related failure
    */
   String generatePreSignedUrl(Duration validityDuration, String requestedUrl) throws GeneralSecurityException;
 
@@ -61,7 +61,7 @@ public interface UrlCryptoKit {
    * @param validityDuration the validity period for the encrypted URL or <code>null</code> if the validity shall not be limited
    * @param url the url to encrypt
    * @return the encrypted URL ciphertext as a Base64 string
-   * @throws GeneralSecurityException 
+   * @throws GeneralSecurityException on any crypto-related failure
    */
   String encryptUrl(Duration validityDuration, String url) throws GeneralSecurityException;
 
@@ -70,8 +70,7 @@ public interface UrlCryptoKit {
    * 
    * @param encrypted the encrypted URL ciphertext as a Base64 string
    * @return the decrypted URL
-   * @throws  
-   * @throws GeneralSecurityException 
+   * @throws GeneralSecurityException on any crypto-related failure
    * @throws ExpiredException if the encrypted URL has a limited validity which has expired
    */
   String decryptUrl(String encrypted) throws GeneralSecurityException;
