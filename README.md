@@ -15,7 +15,7 @@ __Maven dependency__
     <dependency>
         <groupId>com.neverpile</groupId>
         <artifactId>url-crypto-kit</artifactId>
-        <version>1.0-28</version>
+        <version>1.0-31</version>
     </dependency>
 
 ## License
