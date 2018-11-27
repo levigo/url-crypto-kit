@@ -4,7 +4,7 @@ jdk:
   - openjdk8
 
 # don't build on commits by travis-ci itself
-if: commit_message !~ /Bump version number/
+if: commit_message !~ /Update version number in README/
 
 stages:
   - name: deploy
@@ -27,8 +27,7 @@ before_deploy:
 deploy:
   skip_cleanup: true
   provider: script
-  ## script: mvn deploy --settings .maven.xml -DskipTests=true -B -U -Prelease
-  script: echo foo
+  script: mvn deploy --settings .maven.xml -DskipTests=true -B -U -Prelease
   on:
     branch: master
 
@@ -39,7 +38,7 @@ after_deploy:
   - git reset --hard HEAD
   - sed -e "s,<version>.*</version>,<version>${project_version}</version>," README.md > README.tmp; mv README.tmp README.md
   - git add README.md
-  - git commit -m "Bump version number"
+  - git commit -m "Update version number in README"
   - git remote add origin-bump https://${GITHUB_PUSH_TOKEN}@github.com/levigo/url-crypto-kit.git
   - git push origin-bump master
 
