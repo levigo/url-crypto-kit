@@ -27,11 +27,10 @@ before_deploy:
 deploy:
   skip_cleanup: true
   provider: script
-  ## script: mvn deploy --settings .maven.xml -DskipTests=true -B -U -Prelease
+  script: mvn deploy --settings .maven.xml -DskipTests=true -B -U -Prelease
   script: echo foo
   on:
     branch: master
-    condition: commit_message !~ /no-(release|deploy)/
 
 after_deploy:
   - git config --global user.email "travis@travis-ci.org"
