@@ -35,8 +35,8 @@
   <licenses>
     <license>
       <name>BSD 3-Clause License</name>
-			<url>http://opensource.org/licenses/BSD-3-Clause</url>
-			<distribution>repo</distribution>
+      <url>http://opensource.org/licenses/BSD-3-Clause</url>
+      <distribution>repo</distribution>
     </license>
   </licenses>
 
@@ -170,6 +170,30 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <!-- Map build number from travis -->
+    <profile>
+      <id>buildnumber-defined</id>
+      <activation>
+        <property>
+          <name>env.TRAVIS_BUILD_NUMBER</name>
+        </property>
+      </activation>
+      <properties>
+        <buildNumber>${env.TRAVIS_BUILD_NUMBER}</buildNumber>
+      </properties>
+    </profile>
+    <profile>
+      <id>buildnumber-undefined</id>
+      <activation>
+        <property>
+          <name>!env.TRAVIS_BUILD_NUMBER</name>
+        </property>
+      </activation>
+      <properties>
+        <buildNumber>local</buildNumber>
+      </properties>
     </profile>
   </profiles>
 </project>

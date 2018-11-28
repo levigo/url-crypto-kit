@@ -4,7 +4,7 @@ jdk:
   - openjdk8
 
 # don't build on commits by travis-ci itself
-if: commit_message !~ /Update version number in README/ && commit_message !~ /no-release/
+if: commit_message !~ /Update version number in README/
 
 stages:
   - name: deploy
@@ -15,7 +15,6 @@ stages:
 before_install:
   - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
-  - export buildNumber=${TRAVIS_BUILD_NUMBER}
 
 ## Build
 script: mvn test --settings .maven.xml -B -U
@@ -28,9 +27,11 @@ before_deploy:
 deploy:
   skip_cleanup: true
   provider: script
-  script: mvn deploy --settings .maven.xml -DskipTests=true -B -U -Prelease
+  ## script: mvn deploy --settings .maven.xml -DskipTests=true -B -U -Prelease
+  script: echo foo
   on:
     branch: master
+    condition: commit_message !~ /no-(release|deploy)/
 
 after_deploy:
   - git config --global user.email "travis@travis-ci.org"
