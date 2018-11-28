@@ -24,7 +24,7 @@
     <spring-boot.version>2.0.6.RELEASE</spring-boot.version>
 
     <buildNumber>local</buildNumber>
-    <revision>1.0-${TRAVIS_BUILD_NUMBER}</revision>
+    <revision>1.0-${buildNumber}</revision>
   </properties>
 
   <scm>
@@ -35,7 +35,8 @@
   <licenses>
     <license>
       <name>BSD 3-Clause License</name>
-      <url>https://choosealicense.com/licenses/bsd-3-clause/</url>
+			<url>http://opensource.org/licenses/BSD-3-Clause</url>
+			<distribution>repo</distribution>
     </license>
   </licenses>
 

@@ -4,7 +4,7 @@ jdk:
   - openjdk8
 
 # don't build on commits by travis-ci itself
-if: commit_message !~ /Update version number in README/
+if: commit_message !~ /Update version number in README/ && commit_message !~ /no-release/
 
 stages:
   - name: deploy
@@ -15,6 +15,7 @@ stages:
 before_install:
   - echo $GPG_SECRET_KEYS | base64 --decode | $GPG_EXECUTABLE --import
   - echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust
+  - export buildNumber=${TRAVIS_BUILD_NUMBER}
 
 ## Build
 script: mvn test --settings .maven.xml -B -U
