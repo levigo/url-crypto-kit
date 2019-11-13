@@ -7,7 +7,7 @@
 - URL encryption and decryption
 - integration with the Spring Framework
 - integration with Spring Security
-- Activation and configuration through Spring auto configuration
+- Activation and configuration through Spring-Boot auto configuration
 
 ## Usage
 __Maven dependency__
