@@ -28,7 +28,6 @@ public class UrlCryptoConfiguration {
   public static class SharedSecretConfiguration {
     private boolean enabled;
     
-    @NotEmpty
     private String secretKey;
 
     public boolean isEnabled() {
