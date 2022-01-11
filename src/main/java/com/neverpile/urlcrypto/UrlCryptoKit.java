@@ -58,7 +58,8 @@ public interface UrlCryptoKit {
    * Encrypt the given URL so that it can be decrypted later. Limit the validity period to the given
    * duration. Do not limit it, if the duration is <code>null</code>.
    * 
-   * @param validityDuration the validity period for the encrypted URL or <code>null</code> if the validity shall not be limited
+   * @param validityDuration the validity period for the encrypted URL or <code>null</code> if the
+   *          validity shall not be limited
    * @param url the url to encrypt
    * @return the encrypted URL ciphertext as a Base64 string
    * @throws GeneralSecurityException on any crypto-related failure
@@ -66,7 +67,8 @@ public interface UrlCryptoKit {
   String encryptUrl(Duration validityDuration, String url) throws GeneralSecurityException;
 
   /**
-   * Decrypt a URL that has been encrypted using {@link #encryptUrl(Duration, String)}. 
+   * Decrypt a URL that has been encrypted using {@link #encryptUrl(Duration, String)}. If you want
+   * to ignore expiry when decrypting, use to {@link #decryptUrl(String, boolean)}.
    * 
    * @param encrypted the encrypted URL ciphertext as a Base64 string
    * @return the decrypted URL
@@ -74,4 +76,16 @@ public interface UrlCryptoKit {
    * @throws ExpiredException if the encrypted URL has a limited validity which has expired
    */
   String decryptUrl(String encrypted) throws GeneralSecurityException;
+
+  /**
+   * Decrypt a URL that has been encrypted using {@link #encryptUrl(Duration, String)}. In contrast
+   * to {@link #decryptUrl(String)} we can specify whether to respect expiry when decrypting.
+   * 
+   * @param encrypted the encrypted URL ciphertext as a Base64 string
+   * @param ignoreExpiry whether to ignore if the duration of this URL is still valid
+   * @return the decrypted URL
+   * @throws GeneralSecurityException on any crypto-related failure
+   * @throws ExpiredException if the encrypted URL has a limited validity which has expired
+   */
+  String decryptUrl(String encrypted, boolean ignoreExpiry) throws GeneralSecurityException;
 }
