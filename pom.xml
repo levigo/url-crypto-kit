@@ -5,7 +5,7 @@
 
   <groupId>com.neverpile</groupId>
   <artifactId>url-crypto-kit</artifactId>
-  <version>${revision}</version>
+  <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>url-crypto-kit</name>
@@ -22,9 +22,6 @@
     <maven.compiler.target>${version.java}</maven.compiler.target>
 
     <spring-boot.version>2.0.6.RELEASE</spring-boot.version>
-
-    <buildNumber>local</buildNumber>
-    <revision>1.0-${buildNumber}</revision>
   </properties>
 
   <scm>
