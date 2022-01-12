@@ -55,4 +55,24 @@ public class UrlEncryptionTest {
     
     kit.decryptUrl(ciphertext);
   }
+  
+  @Test
+  public void testThat_encryptedUrlCanBeDecryptedWithinGracePeriod() throws Exception {
+    URL url = new URL("https://foo.bar/baz?yada=foo");
+
+    String ciphertext = kit.encryptUrl(Duration.parse("PT1S"), url.toExternalForm());
+    Thread.sleep(1000);
+    
+    kit.decryptUrl(ciphertext, Duration.ofSeconds(3));
+  }
+  
+  @Test(expected = ExpiredException.class)
+  public void testThat_encryptedUrlExpiresAfterGracePeriod() throws Exception {
+    URL url = new URL("https://foo.bar/baz?yada=foo");
+
+    String ciphertext = kit.encryptUrl(Duration.parse("PT1S"), url.toExternalForm());
+    Thread.sleep(2000);
+    
+    kit.decryptUrl(ciphertext, Duration.ofSeconds(1));
+  }
 }

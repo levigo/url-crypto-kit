@@ -68,7 +68,7 @@ public interface UrlCryptoKit {
 
   /**
    * Decrypt a URL that has been encrypted using {@link #encryptUrl(Duration, String)}. If you want
-   * to ignore expiry when decrypting, use to {@link #decryptUrl(String, boolean)}.
+   * handle expiry more gracefully when decrypting, use to {@link #decryptUrl(String, Duration)}.
    * 
    * @param encrypted the encrypted URL ciphertext as a Base64 string
    * @return the decrypted URL
@@ -79,13 +79,14 @@ public interface UrlCryptoKit {
 
   /**
    * Decrypt a URL that has been encrypted using {@link #encryptUrl(Duration, String)}. In contrast
-   * to {@link #decryptUrl(String)} we can specify whether to respect expiry when decrypting.
+   * to {@link #decryptUrl(String)} we can specify how graceful we handle the expiry timestamp.
    * 
    * @param encrypted the encrypted URL ciphertext as a Base64 string
-   * @param ignoreExpiry whether to ignore if the duration of this URL is still valid
+   * @param gracePeriod how long we allow the validityDuration (specified when encrypting) to be
+   *          exceeded
    * @return the decrypted URL
    * @throws GeneralSecurityException on any crypto-related failure
    * @throws ExpiredException if the encrypted URL has a limited validity which has expired
    */
-  String decryptUrl(String encrypted, boolean ignoreExpiry) throws GeneralSecurityException;
+  String decryptUrl(String encrypted, Duration gracePeriod) throws GeneralSecurityException;
 }

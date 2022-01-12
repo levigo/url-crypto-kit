@@ -355,14 +355,14 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
    */
   @Override
   public String decryptUrl(final String encrypted) throws GeneralSecurityException {
-    return decryptUrl(encrypted, false);
+    return decryptUrl(encrypted, Duration.ofMillis(0));
   }
   
   /* (non-Javadoc)
-   * @see com.neverpile.urlcrypto.UrlCryptoKit#decryptUrl(java.lang.String, boolean)
+   * @see com.neverpile.urlcrypto.UrlCryptoKit#decryptUrl(java.lang.String, Duration)
    */
   @Override
-  public String decryptUrl(final String encrypted, boolean ignoreExpiry) throws GeneralSecurityException {
+  public String decryptUrl(final String encrypted, Duration gracePeriod) throws GeneralSecurityException {
     String plaintext = decrypt(encrypted);
 
     String[] parts = plaintext.split("\\|", 2);
@@ -371,9 +371,10 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
     }
 
     String expiresAt = parts[0];
-    if (!ignoreExpiry && !expiresAt.isEmpty()) {
+    if (!expiresAt.isEmpty()) {
       ZonedDateTime expiryTime = parseExpiryTime(expiresAt);
-      if (expiryTime.isBefore(ZonedDateTime.now()))
+      
+      if (expiryTime.plus(gracePeriod).isBefore(ZonedDateTime.now()))
         throw new ExpiredException("The encrypted URL has expired");
     }
 
