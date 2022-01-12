@@ -68,7 +68,7 @@ public interface UrlCryptoKit {
 
   /**
    * Decrypt a URL that has been encrypted using {@link #encryptUrl(Duration, String)}. If you want
-   * handle expiry more graceful when decrypting, use to {@link #decryptUrl(String, Duration)}.
+   * handle expiry more gracefully when decrypting, use to {@link #decryptUrl(String, Duration)}.
    * 
    * @param encrypted the encrypted URL ciphertext as a Base64 string
    * @return the decrypted URL
