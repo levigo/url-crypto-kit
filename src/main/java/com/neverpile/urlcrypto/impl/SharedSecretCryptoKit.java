@@ -116,7 +116,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
    * @throws GeneralSecurityException on any crypto-related failure
    */
   private String encrypt(final String plaintext) throws GeneralSecurityException {
-    byte plaintextBytes[] = compress(plaintext.getBytes(StandardCharsets.UTF_8));
+    byte[] plaintextBytes = compress(plaintext.getBytes(StandardCharsets.UTF_8));
 
     Key secretKeySpec = new SecretKeySpec(keyBytes, AESALGO);
     byte[] salt = generateRandomIv();
@@ -152,7 +152,6 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
    * @param ciphertext the ciphertext
    * @return the plaintext
    * @throws GeneralSecurityException on any crypto-related failure
-   * @throws DataFormatException on compresstion-related failures
    */
   private String decrypt(final String ciphertext) throws GeneralSecurityException {
     Key secretKeySpec = new SecretKeySpec(keyBytes, AESALGO);
@@ -247,15 +246,12 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
 
     // Build Signature
     String signature = buildSignature(requestedUrl, expiresAt, encodedAuthorization);
-    final String encryptedAuthorization = encodedAuthorization;
-    final String expiresAt1 = expiresAt;
-    final String signature1 = signature;
 
     // Encode pre-signed Url
     Map<String, String> params = new HashMap<>();
-    params.put(SharedSecretCryptoKit.CREDENTIAL, encryptedAuthorization);
-    params.put(SharedSecretCryptoKit.EXPIRES, expiresAt1);
-    params.put(SharedSecretCryptoKit.SIGNATURE, signature1);
+    params.put(SharedSecretCryptoKit.CREDENTIAL, encodedAuthorization);
+    params.put(SharedSecretCryptoKit.EXPIRES, expiresAt);
+    params.put(SharedSecretCryptoKit.SIGNATURE, signature);
 
     // FIXME: this doesn't support URLs with existing query parameters. Is this a problem?
     return params.keySet().stream() //
@@ -293,7 +289,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
       String[] authentication = decryptedAuthentication.split("\n");
 
       String username = authentication[0];
-      List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>(authentication.length - 1);
+      List<GrantedAuthority> authorities = new ArrayList<>(authentication.length - 1);
       for (int i = 1; i < authentication.length; i++) {
         authorities.add(new SimpleGrantedAuthority(authentication[i]));
       }

@@ -1,12 +1,11 @@
 package com.neverpile.urlcrypto.springsecurity;
 
-import static java.nio.charset.StandardCharsets.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.hamcrest.CoreMatchers.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
-import static org.springframework.web.util.UriUtils.*;
+import static org.springframework.web.util.UriUtils.decode;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -14,26 +13,25 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.codec.Hex;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.neverpile.urlcrypto.impl.SharedSecretCryptoKit;
 
 import io.restassured.RestAssured;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-    "neverpile.url-crypto.shared-secret.enabled=true", 
-    "neverpile.url-crypto.max-pre-signed-validity=PT24H",
-    "neverpile.url-crypto.shared-secret.secret-key=foobar"
-})
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = {"neverpile.url-crypto.shared-secret.enabled=true",
+        "neverpile.url-crypto.max-pre-signed-validity=PT24H", "neverpile.url-crypto.shared-secret.secret-key=foobar"
+    })
 public class PreSignedUrlTest {
   @LocalServerPort
   int port;
@@ -41,13 +39,13 @@ public class PreSignedUrlTest {
   @Autowired
   SharedSecretCryptoKit kit;
 
-  @Before
+  @BeforeEach
   public void setupRestAssured() {
     RestAssured.port = port;
   }
 
   @Test
-  public void testThat_dummyResourceRequiresAuthentication() throws Exception {
+  public void testThat_dummyResourceRequiresAuthentication() {
     // @formatter:off
     RestAssured
       .when()
@@ -58,7 +56,7 @@ public class PreSignedUrlTest {
   }
 
   @Test
-  public void testThat_dummyResourceCanBeAccessedWithAuthentication() throws Exception {
+  public void testThat_dummyResourceCanBeAccessedWithAuthentication() {
     // @formatter:off
     RestAssured
       .given()
@@ -67,12 +65,12 @@ public class PreSignedUrlTest {
         .get("/foo")
       .then()
         .statusCode(200)
-        .content(equalTo("foo"));
+        .body(equalTo("foo"));
     // @formatter:on
   }
 
   @Test
-  public void testThat_PSUCanBeGeneratedWithAuthentication() throws Exception {
+  public void testThat_PSUCanBeGeneratedWithAuthentication() {
     ZonedDateTime startOfRequest = ZonedDateTime.now(ZoneOffset.UTC);
 
     URI psu = createPSU("/foo", "PT24H");
@@ -91,9 +89,9 @@ public class PreSignedUrlTest {
         .isAfter(startOfRequest.plusDays(1).minusMinutes(1)) //
         .isBefore(startOfRequest.plusDays(1).plusMinutes(1));
   }
-  
+
   @Test
-  public void testThat_PSUValidityHonorsMaxValue() throws Exception {
+  public void testThat_PSUValidityHonorsMaxValue() {
     ZonedDateTime startOfRequest = ZonedDateTime.now(ZoneOffset.UTC);
 
     // we request two days but expect to be given only 24h
@@ -112,7 +110,7 @@ public class PreSignedUrlTest {
   }
 
   @Test
-  public void testThat_PSUCanBeUsedToAccessResource() throws Exception {
+  public void testThat_PSUCanBeUsedToAccessResource() {
     URI psu = createPSU("/foo", "PT24H");
 
     // @formatter:off
@@ -123,12 +121,12 @@ public class PreSignedUrlTest {
         .get(psu.getPath())
       .then()
         .statusCode(200)
-        .content(equalTo("foo"));
+        .body(equalTo("foo"));
     // @formatter:on
   }
 
   @Test
-  public void testThat_PSUTransportsCredentials() throws Exception {
+  public void testThat_PSUTransportsCredentials() {
     URI psu = createPSU("/bar", "PT24H");
 
     // @formatter:off
@@ -139,12 +137,12 @@ public class PreSignedUrlTest {
         .get(psu.getPath())
       .then()
         .statusCode(200)
-        .content(equalTo("user/[ROLE_BAR, ROLE_FOO, ROLE_USER]"));
+        .body(equalTo("user/[ROLE_BAR, ROLE_FOO, ROLE_USER]"));
     // @formatter:on
   }
 
   @Test
-  public void testThat_modifyingSignatureBreaksPSU() throws Exception {
+  public void testThat_modifyingSignatureBreaksPSU() {
     URI uri = createPSU("/foo", "PT24H");
 
     Map<String, String> query = parseQuery(uri);
@@ -165,7 +163,7 @@ public class PreSignedUrlTest {
   }
 
   @Test
-  public void testThat_modifyingCredentialsBreaksPSU() throws Exception {
+  public void testThat_modifyingCredentialsBreaksPSU() {
     URI uri = createPSU("/foo", "PT24H");
 
     Map<String, String> query = parseQuery(uri);
@@ -186,7 +184,7 @@ public class PreSignedUrlTest {
   }
 
   @Test
-  public void testThat_modifyingPathBreaksPSU() throws Exception {
+  public void testThat_modifyingPathBreaksPSU() {
     URI uri = createPSU("/foo", "PT24H");
 
     // @formatter:off
@@ -201,7 +199,7 @@ public class PreSignedUrlTest {
   }
 
   @Test
-  public void testThat_modifyingExpiryTimeBreaksPSU() throws Exception {
+  public void testThat_modifyingExpiryTimeBreaksPSU() {
     URI uri = createPSU("/foo", "PT24H");
 
     Map<String, String> query = parseQuery(uri);
@@ -259,15 +257,15 @@ public class PreSignedUrlTest {
         .get(path)
       .then()
         .statusCode(200)
-        .content(not(equalTo("foo")))
+        .body(not(equalTo("foo")))
         .extract().asString();
     // @formatter:on
 
     return URI.create(psu.trim());
   }
 
-  private Map<String, String> parseQuery(final URI uri) throws UnsupportedEncodingException {
-    final Map<String, String> result = new LinkedHashMap<String, String>();
+  private Map<String, String> parseQuery(final URI uri) {
+    final Map<String, String> result = new LinkedHashMap<>();
 
     for (String pair : uri.getQuery().split("&")) {
       String[] keyValue = pair.split("=", 2);
@@ -281,7 +279,7 @@ public class PreSignedUrlTest {
   }
 
   @Test
-  public void testThat_PSUCannotBeGeneratedWithoutAuthentication() throws Exception {
+  public void testThat_PSUCannotBeGeneratedWithoutAuthentication() {
     // @formatter:off
     RestAssured
       .given()
@@ -294,7 +292,7 @@ public class PreSignedUrlTest {
   }
 
   @Test
-  public void testThat_PSUCannotBeGeneratedForMethodsWithoutAnnotation() throws Exception {
+  public void testThat_PSUCannotBeGeneratedForMethodsWithoutAnnotation() {
     // @formatter:off
     RestAssured
       .given()

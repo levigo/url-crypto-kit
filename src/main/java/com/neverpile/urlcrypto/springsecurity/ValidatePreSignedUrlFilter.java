@@ -30,7 +30,7 @@ public class ValidatePreSignedUrlFilter extends OncePerRequestFilter {
   private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
 
   /**
-   * This Method execute before the execution of the target resource. The system checks whether the
+   * This Method executes before the execution of the target resource. The system checks whether the
    * request includes a Pre Sign URL (PSU). If the order contains the parameter "X-NPE-PSU
    * signature", the method checks the expiration date, the signature and (currently not) the
    * validity of the authentication parameters. If all information is valid, the inquirer gets
@@ -78,7 +78,7 @@ public class ValidatePreSignedUrlFilter extends OncePerRequestFilter {
       SecurityContextHolder.clearContext();
 
       if (debug) {
-        this.logger.debug("Pre-signed URL valudation failed: ", e);
+        this.logger.debug("Pre-signed URL validation failed: ", e);
       }
 
       response.sendError(HttpStatus.UNAUTHORIZED.value(), e.getMessage());

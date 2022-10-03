@@ -10,14 +10,14 @@ import javax.servlet.http.HttpServletRequest;
  * verification.
  */
 public interface UrlCryptoKit {
-  public static final String DURATION = "X-NPE-PSU-Duration";
-  public static final String CREDENTIAL = "X-NPE-PSU-Credential";
-  public static final String EXPIRES = "X-NPE-PSU-Expires";
-  public static final String SIGNATURE = "X-NPE-PSU-Signature";
-  static final String DATE_PATTERN = "yyyyMMddHHmmss";
+  String DURATION = "X-NPE-PSU-Duration";
+  String CREDENTIAL = "X-NPE-PSU-Credential";
+  String EXPIRES = "X-NPE-PSU-Expires";
+  String SIGNATURE = "X-NPE-PSU-Signature";
+  String DATE_PATTERN = "yyyyMMddHHmmss";
 
   /**
-   * Generate a pre-signed URL for the given requested URL with the the given validity duration.
+   * Generate a pre-signed URL for the given requested URL with the given validity duration.
    * 
    * @param validityDuration the requested validity duration
    * @param requestedUrl the URL

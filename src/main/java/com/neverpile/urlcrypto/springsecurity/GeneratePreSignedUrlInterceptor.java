@@ -26,7 +26,7 @@ public class GeneratePreSignedUrlInterceptor implements HandlerInterceptor {
 
 
   /**
-   * This Method execute before the execution of the target resource. If the request contains the
+   * This Method executes before the execution of the target resource. If the request contains the
    * parameter "X-NPE-PSU duration" and the target resource the annotation "PSUEnabled" the method
    * creates a Pre Sign Url.
    *
@@ -42,10 +42,8 @@ public class GeneratePreSignedUrlInterceptor implements HandlerInterceptor {
         Class<? extends Annotation> psuEnablingAnnotation = (Class<? extends Annotation>) Class.forName(
             config.getEnablePreSignedUrlAnnotationClass());
 
-        Annotation psuEnabled = null != psuEnablingAnnotation
-            ? ((HandlerMethod) handler).getMethodAnnotation(psuEnablingAnnotation)
-            : null;
-        if (null == psuEnabled && null != psuEnablingAnnotation) {
+        Annotation psuEnabled = ((HandlerMethod) handler).getMethodAnnotation(psuEnablingAnnotation);
+        if (null == psuEnabled) {
           throw new AuthenticationException("Pre Sign URLs(PSU) not activated for " + handler + ": not annotated with @"
               + psuEnablingAnnotation.getName()) {
             private static final long serialVersionUID = 1L;

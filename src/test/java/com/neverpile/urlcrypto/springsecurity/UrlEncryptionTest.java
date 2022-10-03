@@ -1,23 +1,25 @@
 package com.neverpile.urlcrypto.springsecurity;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URL;
 import java.time.Duration;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.neverpile.urlcrypto.ExpiredException;
 import com.neverpile.urlcrypto.impl.SharedSecretCryptoKit;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
-    "neverpile.url-crypto.shared-secret.enabled=true", "neverpile.url-crypto.shared-secret.secret-key=foobar"
-})
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+    properties = {"neverpile.url-crypto.shared-secret.enabled=true",
+        "neverpile.url-crypto.shared-secret.secret-key=foobar"
+    })
 public class UrlEncryptionTest {
   @Autowired
   SharedSecretCryptoKit kit;
@@ -34,7 +36,7 @@ public class UrlEncryptionTest {
 
     assertThat(plaintext).isEqualTo(url.toExternalForm());
   }
-  
+
   @Test
   public void testThat_encryptionUsesIV() throws Exception {
     URL url = new URL("https://foo.bar/baz?yada=foo");
@@ -45,34 +47,38 @@ public class UrlEncryptionTest {
     assertThat(ciphertext1).isNotEqualTo(ciphertext2);
   }
 
-  @Test(expected = ExpiredException.class)
-  public void testThat_encryptedUrlExpires() throws Exception {
-    URL url = new URL("https://foo.bar/baz?yada=foo");
+  @Test
+  public void testThat_encryptedUrlExpires() {
+    assertThrows(ExpiredException.class, () -> {
+      URL url = new URL("https://foo.bar/baz?yada=foo");
 
-    String ciphertext = kit.encryptUrl(Duration.parse("PT1S"), url.toExternalForm());
+      String ciphertext = kit.encryptUrl(Duration.parse("PT1S"), url.toExternalForm());
 
-    Thread.sleep(2000);
-    
-    kit.decryptUrl(ciphertext);
+      Thread.sleep(2000);
+
+      kit.decryptUrl(ciphertext);
+    });
   }
-  
+
   @Test
   public void testThat_encryptedUrlCanBeDecryptedWithinGracePeriod() throws Exception {
     URL url = new URL("https://foo.bar/baz?yada=foo");
 
     String ciphertext = kit.encryptUrl(Duration.parse("PT1S"), url.toExternalForm());
     Thread.sleep(1000);
-    
+
     kit.decryptUrl(ciphertext, Duration.ofSeconds(3));
   }
-  
-  @Test(expected = ExpiredException.class)
-  public void testThat_encryptedUrlExpiresAfterGracePeriod() throws Exception {
-    URL url = new URL("https://foo.bar/baz?yada=foo");
 
-    String ciphertext = kit.encryptUrl(Duration.parse("PT1S"), url.toExternalForm());
-    Thread.sleep(2000);
-    
-    kit.decryptUrl(ciphertext, Duration.ofSeconds(1));
+  @Test
+  public void testThat_encryptedUrlExpiresAfterGracePeriod() {
+    assertThrows(ExpiredException.class, () -> {
+      URL url = new URL("https://foo.bar/baz?yada=foo");
+
+      String ciphertext = kit.encryptUrl(Duration.parse("PT1S"), url.toExternalForm());
+      Thread.sleep(2000);
+
+      kit.decryptUrl(ciphertext, Duration.ofSeconds(1));
+    });
   }
 }
