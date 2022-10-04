@@ -41,7 +41,9 @@ public class PreSignedUrlTest {
 
   @BeforeEach
   public void setupRestAssured() {
+    System.out.println("Port:" + port);
     RestAssured.port = port;
+    RestAssured.baseURI = "http://localhost";
   }
 
   @Test
