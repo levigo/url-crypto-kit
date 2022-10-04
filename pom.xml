@@ -170,8 +170,8 @@
             </executions>
             <configuration>
               <gpgArguments>
-                <gpg>--pinentry-mode</gpg>
-                <gpg>loopback</gpg>
+                <gpgArgument>--pinentry-mode</gpgArgument>
+                <gpgArgument>loopback</gpgArgument>
               </gpgArguments>
             </configuration>
           </plugin>
