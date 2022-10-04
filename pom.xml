@@ -85,6 +85,10 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
       </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.2</version>
+      </plugin>
     </plugins>
   </build>
 
@@ -170,10 +174,6 @@
                 <gpg>loopback</gpg>
               </gpgArguments>
             </configuration>
-          </plugin>
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.22.2</version>
           </plugin>
         </plugins>
       </build>
