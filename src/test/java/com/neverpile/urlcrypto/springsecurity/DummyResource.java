@@ -13,7 +13,7 @@ public class DummyResource {
   public String foo() {
     return "foo";
   }
-  
+
   @GetMapping("bar")
   @PreSignedUrlEnabled
   public String bar(final Authentication auth) {

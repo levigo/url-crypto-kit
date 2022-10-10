@@ -2,10 +2,8 @@ package com.neverpile.urlcrypto.config;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-
-import javax.validation.constraints.NotEmpty;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -23,7 +21,7 @@ public class UrlCryptoConfiguration {
   
   private Duration maxPreSignedValidity = Duration.ofDays(30);
   
-  private List<String> pathPatterns = new ArrayList<>(Arrays.asList("/**"));
+  private List<String> pathPatterns = new ArrayList<>(Collections.singletonList("/**"));
   
   public static class SharedSecretConfiguration {
     private boolean enabled;

@@ -41,10 +41,7 @@ public class ParameterFilteringHttpServletRequestWrapper extends HttpServletRequ
 
     filteredParams = new HashMap<>(request.getParameterMap());
 
-    for (Iterator<String> i = filteredParams.keySet().iterator(); i.hasNext(); ) {
-      if (filter.test(i.next()))
-        i.remove();
-    }
+    filteredParams.keySet().removeIf(filter);
   }
 
   @Override
