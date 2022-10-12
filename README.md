@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/levigo/url-crypto-kit.svg?branch=master)](https://travis-ci.org/levigo/url-crypto-kit)
-[![Generic badge](https://img.shields.io/badge/current%20version-1.3.2-1abc9c.svg)](https://github.com/levigo/url-crypto-kit/tree/v1.3.2)
+[![Generic badge](https://img.shields.io/badge/current%20version-1.3.3-1abc9c.svg)](https://github.com/levigo/url-crypto-kit/tree/v1.3.3)
 
 # URL cryptography functionality to be used in conjunction with the Spring(tm) Framework 
 
@@ -16,7 +16,7 @@ __Maven dependency__
     <dependency>
         <groupId>com.neverpile</groupId>
         <artifactId>url-crypto-kit</artifactId>
-        <version>1.3.2</version>
+        <version>1.3.3</version>
     </dependency>
 
 ## License
