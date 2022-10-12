@@ -32,8 +32,6 @@ import com.neverpile.urlcrypto.springsecurity.ValidatePreSignedUrlFilter;
  */
 @Configuration
 @Import(UrlCryptoConfiguration.class)
-@ConditionalOnProperty(name = "neverpile.url-crypto.shared-secret.enabled", havingValue = "true",
-    matchIfMissing = false)
 public class UrlCryptoAutoConfiguration {
   private final UrlCryptoConfiguration config;
 
