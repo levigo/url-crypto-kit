@@ -5,7 +5,7 @@
 
   <groupId>com.neverpile</groupId>
   <artifactId>url-crypto-kit</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>url-crypto-kit</name>
