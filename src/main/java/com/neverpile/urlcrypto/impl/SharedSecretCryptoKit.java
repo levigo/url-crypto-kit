@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -55,6 +56,8 @@ import com.neverpile.urlcrypto.config.UrlCryptoConfiguration;
  * verification.
  */
 @Component
+@ConditionalOnProperty(name = "neverpile.url-crypto.shared-secret.enabled", havingValue = "false",
+        matchIfMissing = false)
 public class SharedSecretCryptoKit implements UrlCryptoKit {
   private static final Logger log = LoggerFactory.getLogger(SharedSecretCryptoKit.class);
 
@@ -229,7 +232,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.neverpile.psu.PreSignedUrlCryptoKit#generatePreSignedUrl(java.time.Duration,
    * java.lang.String)
    */
@@ -268,7 +271,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.neverpile.psu.PreSignedUrlCryptoKit#getPreSignedRequest(javax.servlet.http.
    * HttpServletRequest)
    */
@@ -304,7 +307,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.neverpile.psu.PreSignedUrlCryptoKit#validatePreSignedRequest(com.neverpile.psu.
    * PreSignedRequest, javax.servlet.http.HttpServletRequest)
    */
@@ -321,7 +324,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.neverpile.urlcrypto.UrlCryptoKit#isPreSigned(javax.servlet.http.HttpServletRequest)
    */
   @Override
@@ -353,7 +356,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
   public String decryptUrl(final String encrypted) throws GeneralSecurityException {
     return decryptUrl(encrypted, Duration.ofMillis(0));
   }
-  
+
   /* (non-Javadoc)
    * @see com.neverpile.urlcrypto.UrlCryptoKit#decryptUrl(java.lang.String, Duration)
    */
@@ -369,7 +372,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
     String expiresAt = parts[0];
     if (!expiresAt.isEmpty()) {
       ZonedDateTime expiryTime = parseExpiryTime(expiresAt);
-      
+
       if (expiryTime.plus(gracePeriod).isBefore(ZonedDateTime.now()))
         throw new ExpiredException("The encrypted URL has expired");
     }
