@@ -18,14 +18,16 @@ public class UrlCryptoConfiguration {
   private String enablePreSignedUrlAnnotationClass = PreSignedUrlEnabled.class.getName();
 
   private final SharedSecretConfiguration sharedSecret = new SharedSecretConfiguration();
-  
+
   private Duration maxPreSignedValidity = Duration.ofDays(30);
-  
+
   private List<String> pathPatterns = new ArrayList<>(Collections.singletonList("/**"));
-  
+
+  private List<String> enabledStaticPaths = new ArrayList<>();
+
   public static class SharedSecretConfiguration {
     private boolean enabled;
-    
+
     private String secretKey;
 
     public boolean isEnabled() {
@@ -71,5 +73,13 @@ public class UrlCryptoConfiguration {
 
   public void setPathPatterns(final List<String> pathPatterns) {
     this.pathPatterns = pathPatterns;
+  }
+
+  public List<String> getEnabledStaticPaths() {
+    return enabledStaticPaths;
+  }
+
+  public void setEnabledStaticPaths(List<String> enabledStaticPaths) {
+    this.enabledStaticPaths = enabledStaticPaths;
   }
 }
