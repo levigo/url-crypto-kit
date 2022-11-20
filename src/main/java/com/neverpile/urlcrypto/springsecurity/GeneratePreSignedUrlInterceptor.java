@@ -69,7 +69,7 @@ public class GeneratePreSignedUrlInterceptor implements HandlerInterceptor {
 
   private boolean isEnabledStaticPath(HttpServletRequest request) {
     PathPatternParser ppp = new PathPatternParser();
-    return config.getEnabledStaticPaths().stream().noneMatch(
+    return config.getPsuEnabledPathPatterns().stream().noneMatch(
         s -> ppp.parse(s).matches(PathContainer.parsePath(request.getServletPath()))
     );
   }

@@ -23,7 +23,7 @@ public class UrlCryptoConfiguration {
 
   private List<String> pathPatterns = new ArrayList<>(Collections.singletonList("/**"));
 
-  private List<String> enabledStaticPaths = new ArrayList<>();
+  private List<String> psuEnabledPathPatterns = new ArrayList<>();
 
   public static class SharedSecretConfiguration {
     private boolean enabled;
@@ -75,11 +75,11 @@ public class UrlCryptoConfiguration {
     this.pathPatterns = pathPatterns;
   }
 
-  public List<String> getEnabledStaticPaths() {
-    return enabledStaticPaths;
+  public List<String> getPsuEnabledPathPatterns() {
+    return psuEnabledPathPatterns;
   }
 
-  public void setEnabledStaticPaths(List<String> enabledStaticPaths) {
-    this.enabledStaticPaths = enabledStaticPaths;
+  public void setPsuEnabledPathPatterns(List<String> psuEnabledPathPatterns) {
+    this.psuEnabledPathPatterns = psuEnabledPathPatterns;
   }
 }
