@@ -55,8 +55,9 @@ public class GeneratePreSignedUrlInterceptor implements HandlerInterceptor {
           return generatePreSignedUrl(request, response, requestedExpiryTime);
         }
       } else if (handler instanceof ResourceHttpRequestHandler) {
-        if (isEnabledStaticPath(request)) {
-          throw new AuthenticationException("Pre Sign URLs(PSU) not enabled for " + request.getRequestURL().toString()) {
+        if (!isEnabledStaticPath(request)) {
+          throw new AuthenticationException("Pre Sign URLs(PSU) not enabled for " + request.getRequestURL().toString() +
+              "\nAdd a matching url pattern to your app property 'neverpile.url-crypto.psuEnabledPathPatterns'.") {
             private static final long serialVersionUID = 1L;
           };
         } else {
@@ -69,7 +70,7 @@ public class GeneratePreSignedUrlInterceptor implements HandlerInterceptor {
 
   private boolean isEnabledStaticPath(HttpServletRequest request) {
     PathPatternParser ppp = new PathPatternParser();
-    return config.getPsuEnabledPathPatterns().stream().noneMatch(
+    return config.getPsuEnabledPathPatterns().stream().anyMatch(
         s -> ppp.parse(s).matches(PathContainer.parsePath(request.getServletPath()))
     );
   }
