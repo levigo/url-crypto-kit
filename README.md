@@ -37,21 +37,22 @@ application.properties:
 neverpile.url-crypto.shared-secret.enabled=true
 neverpile.url-crypto.shared-secret.secret-key=Not#So%Secret
 neverpile.url-crypto.pathPatterns=/**
-neverpile.url-crypto.enabledStaticPaths=/path/to/static/data/**
+neverpile.url-crypto.psuEnabledPathPatterns=/path/to/static/data/**
 ```
 __neverpile.url-crypto.shared-secret.enabled=true__  
 Enable the CryptoKit with a shard secret implementation.  
 This is the only implementation as of now.  
 __neverpile.url-crypto.shared-secret.secret-key=Not#So%Secret__  
 Choose a secret key for the encryption.  
+If omitted, a random secret key will be generated on startup.  
 Please don't copy the example key.  
 __neverpile.url-crypto.pathPatterns=/**__  
 Allows you to define one or multiple URL patterns where the PSU mechanism should be activated on.  
 All URL paths which do not match any of the defined paths will not be considered for encryption.  
 /&ast;&ast; will allow PSU to be enabled on all paths.  
-__neverpile.url-crypto.enabledStaticPaths=/path/to/static/data/**__  
+__neverpile.url-crypto.psuEnabledPathPatterns=/path/to/static/data/**__  
 All paths defined here should also match a pattern in the global pathPatterns property.  
-Paths defined here allow the use of PSU without any additional configuration.
+Paths defined here allow the generation of PSU with the url parameter method described in the following section.  
 
 ### Enable a handler method:
 In any Spring RestController or similar:  
@@ -69,12 +70,12 @@ public class ExampleResource {
 }
 ```
 With the `@PreSignedUrlEnabled` Annotation a single Endpoint will be registered for use with PSU.  
-Any Spring handler Method can be annotated. The annotated method must handel a path that is included in the previously 
-described `pathPatterns`.
+Any Spring handler Method can be annotated. The annotated method must handle a path that is included in the previously 
+described `pathPatterns`.  
 
 ### Generating a PSU
 If you have activated the PSU functionality on an endpoint by annotating it with `@PreSignedUrlEnabled` or by defining 
-it in the application property `enabledStaticPaths`, you can add a PSU parameter to the URL.  
+it in the application property `psuEnabledPathPatterns`, you can add a PSU parameter to the URL.  
 __example request:__  
 ```http request
 https://myhost:1337/controller/path/example/path/42?X-NPE-PSU-Duration=PT1H
