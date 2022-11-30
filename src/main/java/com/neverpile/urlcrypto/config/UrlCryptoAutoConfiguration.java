@@ -68,7 +68,7 @@ public class UrlCryptoAutoConfiguration {
     psuFilter.setAuthenticationManager(http.getSharedObject(AuthenticationManager.class));
 
     context.getAutowireCapableBeanFactory().autowireBean(psuFilter);
-    if(!config.getCsfrEnabled()){
+    if(!config.getCsrfEnabled()){
       http = http.csrf().disable();
     }
 
