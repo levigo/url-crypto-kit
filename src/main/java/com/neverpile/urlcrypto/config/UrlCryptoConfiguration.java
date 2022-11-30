@@ -25,6 +25,8 @@ public class UrlCryptoConfiguration {
 
   private List<String> psuEnabledPathPatterns = new ArrayList<>();
 
+  private boolean csrfEnabled = true;
+
   public static class SharedSecretConfiguration {
     private boolean enabled;
 
@@ -81,5 +83,13 @@ public class UrlCryptoConfiguration {
 
   public void setPsuEnabledPathPatterns(List<String> psuEnabledPathPatterns) {
     this.psuEnabledPathPatterns = psuEnabledPathPatterns;
+  }
+
+  public boolean getCsrfEnabled() {
+    return csrfEnabled;
+  }
+
+  public void setCsrfEnabled(boolean csrfEnabled) {
+    this.csrfEnabled = csrfEnabled;
   }
 }
