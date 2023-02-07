@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 
 /**
  * A HttpServletRequestWrapper filtering the request parameters of the original request using a

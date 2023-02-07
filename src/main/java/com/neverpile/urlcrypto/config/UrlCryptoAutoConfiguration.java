@@ -1,7 +1,7 @@
 package com.neverpile.urlcrypto.config;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -45,7 +45,7 @@ public class UrlCryptoAutoConfiguration {
   @Bean
   @ConditionalOnProperty(name = "neverpile.url-crypto.shared-secret.enabled", havingValue = "true",
       matchIfMissing = false)
-  SharedSecretCryptoKit sharedSecretCryptoKit() {
+  UrlCryptoKit sharedSecretCryptoKit() {
     return new SharedSecretCryptoKit();
   }
 
@@ -71,14 +71,13 @@ public class UrlCryptoAutoConfiguration {
     if(!config.getCsrfEnabled()){
       http = http.csrf().disable();
     }
-
     // @formatter:off
-    http
-      .requestMatcher(new PSURequestedMatcher())
-      .addFilterBefore(psuFilter, BasicAuthenticationFilter.class)
-      .authorizeRequests()
-        .antMatchers(HttpMethod.OPTIONS).permitAll()
-        .anyRequest().authenticated()
+    http.securityMatcher(new PSURequestedMatcher())
+            .addFilterBefore(psuFilter, BasicAuthenticationFilter.class)
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(HttpMethod.OPTIONS).permitAll()
+                    .anyRequest().authenticated()
+            )
     ;
     // @formatter:on
     return http.build();

@@ -14,7 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import com.neverpile.urlcrypto.impl.SharedSecretCryptoKit;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = {"neverpile.url-crypto.shared-secret.enabled=true"
     })
 public class UrlEncryptionWithGeneratedKeyTest {

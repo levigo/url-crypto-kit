@@ -25,24 +25,22 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.codec.Hex;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
 
 import com.neverpile.urlcrypto.ExpiredException;
@@ -55,9 +53,6 @@ import com.neverpile.urlcrypto.config.UrlCryptoConfiguration;
  * The PreSignedUrlCryptoKit handles the cryptographical part of pre-signed-URL generation and
  * verification.
  */
-@Component
-@ConditionalOnProperty(name = "neverpile.url-crypto.shared-secret.enabled", havingValue = "false",
-        matchIfMissing = false)
 public class SharedSecretCryptoKit implements UrlCryptoKit {
   private static final Logger log = LoggerFactory.getLogger(SharedSecretCryptoKit.class);
 
@@ -140,11 +135,11 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
 
   private byte[] compress(final byte[] data) {
     byte[] output = new byte[data.length * 2];
-    Deflater compresser = new Deflater();
-    compresser.setInput(data);
-    compresser.finish();
-    int compressedDataLength = compresser.deflate(output);
-    compresser.end();
+    Deflater compressor = new Deflater();
+    compressor.setInput(data);
+    compressor.finish();
+    int compressedDataLength = compressor.deflate(output);
+    compressor.end();
 
     return Arrays.copyOf(output, compressedDataLength);
   }
@@ -272,7 +267,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
   /*
    * (non-Javadoc)
    *
-   * @see com.neverpile.psu.PreSignedUrlCryptoKit#getPreSignedRequest(javax.servlet.http.
+   * @see com.neverpile.psu.PreSignedUrlCryptoKit#getPreSignedRequest(jakarta.servlet.http.
    * HttpServletRequest)
    */
   public PreSignedRequest getPreSignedRequest(final HttpServletRequest request) {
@@ -309,7 +304,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
    * (non-Javadoc)
    *
    * @see com.neverpile.psu.PreSignedUrlCryptoKit#validatePreSignedRequest(com.neverpile.psu.
-   * PreSignedRequest, javax.servlet.http.HttpServletRequest)
+   * PreSignedRequest, jakarta.servlet.http.HttpServletRequest)
    */
   @Override
   public void validatePreSignedRequest(final PreSignedRequest preSignedRequest, final HttpServletRequest request) {
@@ -325,7 +320,7 @@ public class SharedSecretCryptoKit implements UrlCryptoKit {
   /*
    * (non-Javadoc)
    *
-   * @see com.neverpile.urlcrypto.UrlCryptoKit#isPreSigned(javax.servlet.http.HttpServletRequest)
+   * @see com.neverpile.urlcrypto.UrlCryptoKit#isPreSigned(jakarta.servlet.http.HttpServletRequest)
    */
   @Override
   public boolean isPreSigned(final HttpServletRequest request) {
