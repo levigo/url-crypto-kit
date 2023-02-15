@@ -3,7 +3,7 @@ package com.neverpile.urlcrypto;
 import java.security.GeneralSecurityException;
 import java.time.Duration;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * The PreSignedUrlCryptoKit handles the cryptographical part of pre-signed-URL generation and

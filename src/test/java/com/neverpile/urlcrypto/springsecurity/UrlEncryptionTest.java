@@ -16,7 +16,7 @@ import com.neverpile.urlcrypto.ExpiredException;
 import com.neverpile.urlcrypto.impl.SharedSecretCryptoKit;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = {"neverpile.url-crypto.shared-secret.enabled=true",
         "neverpile.url-crypto.shared-secret.secret-key=foobar"
     })

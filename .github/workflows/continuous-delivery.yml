@@ -1,13 +1,13 @@
 name: Continuous Delivery
 
-on: 
+on:
   push:
     branches:
       - master
     paths-ignore:
       # - '.github/**'
       - '**/README.md'
-      
+
 jobs:
   build:
 
@@ -22,7 +22,7 @@ jobs:
       with:
         release_branches: master
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: Verify and print new build number
       run: |
         if echo '${{ steps.semanticversion.outputs.new_tag }}' |grep -Eq '^v[0-9]+[.][0-9]+[.][0-9]+$'; then 
@@ -40,11 +40,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
 
-    ## Configure JDK 11
-    - name: Set up JDK 11
+    ## Configure JDK 17
+    - name: Set up JDK 17
       uses: actions/setup-java@v1
       with:
-        java-version: 11
+        java-version: 17
 
     ## Build with maven
     - name: Prepare maven settings
@@ -76,7 +76,7 @@ jobs:
         echo "$GPG_SECRET_KEYS" | base64 --decode | $GPG_EXECUTABLE --import --no-tty --batch --yes
         echo "$GPG_OWNERTRUST" | base64 --decode | $GPG_EXECUTABLE --import-ownertrust --no-tty --batch --yes
         mvn deploy --settings .maven.xml -Dmaven.test.skip.exec=true -B -U -Prelease
-        
+
     ## Update README.md
     - name: Edit README.md to contain version number
       run: |
@@ -91,13 +91,13 @@ jobs:
 
         git add README.md
         git commit -m "Edit README.md to contain correct version"
-      
+
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
         branch: master
-        github_token: ${{ secrets.GITHUB_TOKEN }}    
-        
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
     ## Notify Slack
     - name: Notify MM about new release
       uses: hennejg/slack-build-notifier@v1.1
@@ -109,5 +109,5 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SLACK_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
-      if: always()        
+      if: always()
 

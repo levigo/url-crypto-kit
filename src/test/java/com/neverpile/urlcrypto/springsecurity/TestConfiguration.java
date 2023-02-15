@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -20,17 +21,17 @@ import com.neverpile.urlcrypto.config.UrlCryptoAutoConfiguration;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @Import({UrlCryptoAutoConfiguration.class, DummyResource.class})
-@Order(SecurityProperties.BASIC_AUTH_ORDER)
 public class TestConfiguration {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    System.out.println("AAAAA");
     http //
         .csrf().disable() //
         .httpBasic().and() //
-        .authorizeRequests() //
-        .antMatchers("/**").hasRole("USER");
+            .authorizeHttpRequests(auth -> //
+                    auth.requestMatchers("/**").hasRole("USER"));
     return http.build();
   }
 
