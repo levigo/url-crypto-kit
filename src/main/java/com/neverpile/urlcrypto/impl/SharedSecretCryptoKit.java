@@ -41,6 +41,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.codec.Hex;
+import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
 
 import com.neverpile.urlcrypto.ExpiredException;
@@ -53,6 +54,7 @@ import com.neverpile.urlcrypto.config.UrlCryptoConfiguration;
  * The PreSignedUrlCryptoKit handles the cryptographical part of pre-signed-URL generation and
  * verification.
  */
+@Component
 public class SharedSecretCryptoKit implements UrlCryptoKit {
   private static final Logger log = LoggerFactory.getLogger(SharedSecretCryptoKit.class);
 
