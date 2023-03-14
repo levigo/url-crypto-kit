@@ -54,7 +54,6 @@ import com.neverpile.urlcrypto.config.UrlCryptoConfiguration;
  * The PreSignedUrlCryptoKit handles the cryptographical part of pre-signed-URL generation and
  * verification.
  */
-@Component
 public class SharedSecretCryptoKit implements UrlCryptoKit {
   private static final Logger log = LoggerFactory.getLogger(SharedSecretCryptoKit.class);
 
