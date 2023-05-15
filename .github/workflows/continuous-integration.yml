@@ -8,7 +8,6 @@ on:
       - '**/README.md'
 
 jobs:
-  build:
   call-continuous-integration:
     uses: levigo/reusable-workflows/.github/workflows/continuous-integration.yml@v3
     secrets: inherit
