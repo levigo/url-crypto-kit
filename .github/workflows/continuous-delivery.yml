@@ -65,10 +65,10 @@ jobs:
       id: version
       run: |
         echo Releasing as ${{ steps.semanticversion.outputs.new_version }}
-        mvn versions:set -DnewVersion=${{ steps.semanticversion.outputs.new_version }}
+        mvn $MAVEN_CLI_OPTS versions:set -DnewVersion=${{ steps.semanticversion.outputs.new_version }}
 
     - name: Perform build
-      run: mvn -B package --file pom.xml
+      run: mvn $MAVEN_CLI_OPTS package --file pom.xml
 
     ## Deploy
     - name: Deploy package
@@ -82,7 +82,7 @@ jobs:
       run: |
         echo "$GPG_SECRET_KEYS" | base64 --decode | $GPG_EXECUTABLE --import --no-tty --batch --yes
         echo "$GPG_OWNERTRUST" | base64 --decode | $GPG_EXECUTABLE --import-ownertrust --no-tty --batch --yes
-        mvn deploy --settings .maven.xml -Dmaven.test.skip.exec=true -B -U -Prelease
+        mvn $MAVEN_CLI_OPTS deploy --settings .maven.xml -Dmaven.test.skip.exec=true -B -U -Prelease
 
     ## Notify Slack
     - name: Notify MM about new release
@@ -91,6 +91,8 @@ jobs:
         username: GitHub
         icon_emoji: octocat
         channel: 'neverpile-ci'
+        status: ${{ job.status }}
+        fields: repo,message,commit,author,action,eventName,ref
         text: Released new version `${{ steps.semanticversion.outputs.new_version }}` of *${{ github.repository }}* to neverpile maven
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
