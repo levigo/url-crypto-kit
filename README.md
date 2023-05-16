@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/levigo/url-crypto-kit.svg?branch=master)](https://travis-ci.org/levigo/url-crypto-kit)
+[![Actions Status](https://github.com/levigo/url-crypto-kit/workflows/Continuous%20Delivery/badge.svg)](https://github.com/levigo/url-crypto-kit/actions)
 [![Generic badge](https://img.shields.io/badge/current%20version-2.0.5-1abc9c.svg)](https://github.com/levigo/url-crypto-kit/tree/v2.0.5)
 
 # URL cryptography functionality to be used in conjunction with the Spring&trade; Framework 
