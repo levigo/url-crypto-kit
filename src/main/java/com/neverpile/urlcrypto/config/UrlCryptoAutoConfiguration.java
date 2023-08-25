@@ -1,5 +1,7 @@
 package com.neverpile.urlcrypto.config;
 
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
+
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -75,7 +77,7 @@ public class UrlCryptoAutoConfiguration {
     http.securityMatcher(new PSURequestedMatcher())
             .addFilterBefore(psuFilter, BasicAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(HttpMethod.OPTIONS).permitAll()
+                    .requestMatchers(antMatcher(HttpMethod.OPTIONS, "/*")).permitAll()
                     .anyRequest().authenticated()
             )
     ;
