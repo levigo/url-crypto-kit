@@ -1,5 +1,5 @@
 [![Actions Status](https://github.com/levigo/url-crypto-kit/workflows/Continuous%20Delivery/badge.svg)](https://github.com/levigo/url-crypto-kit/actions)
-[![Generic badge](https://img.shields.io/badge/current%20version-2.0.6-1abc9c.svg)](https://github.com/levigo/url-crypto-kit/tree/v2.0.6)
+[![Generic badge](https://img.shields.io/badge/current%20version-2.1.0-1abc9c.svg)](https://github.com/levigo/url-crypto-kit/tree/v2.1.0)
 
 # URL cryptography functionality to be used in conjunction with the Spring&trade; Framework 
 
@@ -28,7 +28,7 @@ authentication.
 <dependency>
     <groupId>com.neverpile</groupId>
     <artifactId>url-crypto-kit</artifactId>
-    <version>2.0.6</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 ### Example configuration
