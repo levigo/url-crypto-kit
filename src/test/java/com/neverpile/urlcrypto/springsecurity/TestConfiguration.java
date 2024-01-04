@@ -9,8 +9,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,17 +23,17 @@ import com.neverpile.urlcrypto.config.UrlCryptoAutoConfiguration;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @Import({UrlCryptoAutoConfiguration.class, DummyResource.class})
 public class TestConfiguration {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     System.out.println("AAAAA");
     http //
-        .csrf().disable() //
-        .httpBasic().and() //
-            .authorizeHttpRequests(auth -> //
-                    auth.requestMatchers("/**").hasRole("USER"));
+        .csrf(AbstractHttpConfigurer::disable)
+        .httpBasic(Customizer.withDefaults())
+        .authorizeHttpRequests(auth -> //
+            auth.requestMatchers("/**").hasRole("USER"));
     return http.build();
   }
 
