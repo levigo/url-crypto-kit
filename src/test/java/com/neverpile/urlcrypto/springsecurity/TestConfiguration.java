@@ -23,7 +23,7 @@ import com.neverpile.urlcrypto.config.UrlCryptoAutoConfiguration;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @Import({UrlCryptoAutoConfiguration.class, DummyResource.class})
 public class TestConfiguration {
   @Bean
