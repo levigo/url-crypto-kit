@@ -9,10 +9,9 @@ on:
 
 jobs:
   call-continuous-integration:
-    uses: levigo/reusable-workflows/.github/workflows/continuous-integration.yml@v3
+    uses: levigo/reusable-workflows-pub/.github/workflows/continuous-integration.yml@v1
     secrets: inherit
     with:
       mattermostChannel: 'neverpile-ci'
       matrix: '{"jdk": [17]}'
       timeoutMinutes: 5
-      sonarAnalysisEnabled: false
