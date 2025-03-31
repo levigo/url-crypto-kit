@@ -107,10 +107,3 @@ jobs:
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
       if: always()
-
-  updateReadme:
-    needs: build
-    uses: levigo/reusable-workflows-pub/.github/workflows/update-readme-md.yml@v1
-    secrets: inherit
-    with:
-      releaseVersion: ${{ needs.build.outputs.releaseVersion }}
