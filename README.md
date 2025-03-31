@@ -1,5 +1,4 @@
 [![Actions Status](https://github.com/levigo/url-crypto-kit/workflows/Continuous%20Delivery/badge.svg)](https://github.com/levigo/url-crypto-kit/actions)
-[![Generic badge](https://img.shields.io/badge/current%20version-2.1.2-1abc9c.svg)](https://github.com/levigo/url-crypto-kit/tree/v2.1.2)
 
 # URL cryptography functionality to be used in conjunction with the Spring&trade; Framework 
 
@@ -22,15 +21,6 @@ The Access rights of a PSU are equivalent to the user who have created it.
 PSU are always time limited and will expire after a defined time. If the link is expired it will not provide any 
 authentication.
 
-## Usage
-### Maven dependency
-```xml
-<dependency>
-    <groupId>com.neverpile</groupId>
-    <artifactId>url-crypto-kit</artifactId>
-    <version>2.1.2</version>
-</dependency>
-```
 ### Example configuration
 application.properties:  
 ```properties
