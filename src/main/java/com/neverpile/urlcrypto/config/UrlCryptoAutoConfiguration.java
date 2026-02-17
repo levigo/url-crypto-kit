@@ -1,7 +1,5 @@
 package com.neverpile.urlcrypto.config;
 
-import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
-
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -16,6 +14,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -71,13 +70,13 @@ public class UrlCryptoAutoConfiguration {
 
     context.getAutowireCapableBeanFactory().autowireBean(psuFilter);
     if(!config.getCsrfEnabled()){
-      http = http.csrf().disable();
+      http.csrf(AbstractHttpConfigurer::disable);
     }
     // @formatter:off
     http.securityMatcher(new PSURequestedMatcher())
             .addFilterBefore(psuFilter, BasicAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(antMatcher(HttpMethod.OPTIONS, "/*")).permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/*").permitAll()
                     .anyRequest().authenticated()
             )
     ;
