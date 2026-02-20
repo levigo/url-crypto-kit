@@ -21,7 +21,7 @@
     <maven.compiler.source>${version.java}</maven.compiler.source>
     <maven.compiler.target>${version.java}</maven.compiler.target>
 
-    <spring-boot.version>3.5.8</spring-boot.version>
+    <spring-boot.version>4.0.1</spring-boot.version>
   </properties>
 
   <scm>
@@ -55,6 +55,7 @@
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
+      <version>6.0.0</version>
       <scope>test</scope>
     </dependency>
 

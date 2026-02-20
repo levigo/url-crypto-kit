@@ -5,12 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.web.servlet.ServletWebSecurityAutoConfiguration;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 
 import com.neverpile.urlcrypto.UrlCryptoKit;
 import com.neverpile.urlcrypto.config.UrlCryptoAutoConfiguration;
@@ -19,8 +18,7 @@ import com.neverpile.urlcrypto.impl.SharedSecretCryptoKit;
 public class AutoConfigTest {
   private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner() //
       .withConfiguration(AutoConfigurations.of(UrlCryptoAutoConfiguration.class, //
-          // emulate @EnableWebSecurity annotation presence
-          WebSecurityConfiguration.class, AuthenticationConfiguration.class, SecurityAutoConfiguration.class, WebMvcAutoConfiguration.class)) //
+          SecurityAutoConfiguration.class, ServletWebSecurityAutoConfiguration.class, WebMvcAutoConfiguration.class)) //
       .withInitializer(new ConditionEvaluationReportLoggingListener());
 
   @Test

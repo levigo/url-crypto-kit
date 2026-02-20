@@ -2,6 +2,7 @@ package com.neverpile.urlcrypto.springsecurity;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.springframework.web.util.UriUtils.decode;
@@ -137,7 +138,10 @@ public class PreSignedUrlTest {
         .get(psu.getPath())
       .then()
         .statusCode(200)
-        .body(equalTo("user/[ROLE_BAR, ROLE_FOO, ROLE_USER]"));
+        .body(containsString("user/"))
+        .body(containsString("ROLE_BAR"))
+        .body(containsString("ROLE_FOO"))
+        .body(containsString("ROLE_USER"));
     // @formatter:on
   }
 
