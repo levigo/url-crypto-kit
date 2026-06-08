@@ -18,14 +18,12 @@ jobs:
       # when running from the command line.
       # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
       MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
-    outputs:
-      releaseVersion: ${{ steps.semanticversion.outputs.new_version }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Bump version and create tag
       id: semanticversion
-      uses: mathieudutour/github-tag-action@v6.2
+      uses: StackAdapt/github-tag-action@c39fa6d65cd3def233513f21ba395a09dbc92eea # v7
       with:
         release_branches: 'master'
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -40,7 +38,7 @@ jobs:
         fi
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0 v5
       with:
         java-version: 17
         distribution: 'temurin'
@@ -64,19 +62,19 @@ jobs:
 
     - name: Deploy package
       env:
-            GPG_EXECUTABLE: gpg
-            GPG_SECRET_KEYS: ${{ secrets.LEVIGO_GPG_KEYS }}
-            GPG_OWNERTRUST: ${{ secrets.LEVIGO_GPG_OWNERTRUST }}
-            GPG_PASSPHRASE: ${{ secrets.LEVIGO_GPG_PASSPHRASE }}
-            SONATYPE_USERNAME: ${{ secrets.LEVIGO_SONATYPE_USERNAME }}
-            SONATYPE_PASSWORD: ${{ secrets.LEVIGO_SONATYPE_PASSWORD }}
+        GPG_EXECUTABLE: gpg
+        GPG_SECRET_KEYS: ${{ secrets.LEVIGO_GPG_KEYS }}
+        GPG_OWNERTRUST: ${{ secrets.LEVIGO_GPG_OWNERTRUST }}
+        GPG_PASSPHRASE: ${{ secrets.LEVIGO_GPG_PASSPHRASE }}
+        SONATYPE_USERNAME: ${{ secrets.LEVIGO_SONATYPE_USERNAME }}
+        SONATYPE_PASSWORD: ${{ secrets.LEVIGO_SONATYPE_PASSWORD }}
       run: |
         echo "$GPG_SECRET_KEYS" | base64 --decode | $GPG_EXECUTABLE --import --no-tty --batch --yes
         echo "$GPG_OWNERTRUST" | base64 --decode | $GPG_EXECUTABLE --import-ownertrust --no-tty --batch --yes
         mvn $MAVEN_CLI_OPTS deploy --settings .maven.xml -Dmaven.test.skip.exec=true -B -U -Prelease
 
     - name: create release and upload release asset
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
       with:
         tag_name: ${{ steps.semanticversion.outputs.new_tag }}
         name: ${{ steps.semanticversion.outputs.new_version }}
@@ -85,25 +83,13 @@ jobs:
         files: |
           ${{ inputs.releaseFiles }}
 
-    # we really need this if the release should trigger a second workflow. the step above will NOT trigger a second workflow.
-    - name: dispatch release event
-      run: |
-        curl \
-          -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          https://api.github.com/repos/${{ github.repository }}/dispatches \
-          -d '{"event_type":"release_created","client_payload":{"version":"${{ steps.semanticversion.outputs.new_version }}"}}'              
-
-    - name: Notify MM about new release
-      uses: 8398a7/action-slack@v3
+    - name: Notify developers
+      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
+      if: failure()
       with:
-        username: GitHub
-        icon_emoji: octocat
-        channel: 'neverpile-ci'
-        status: ${{ job.status }}
-        fields: repo,message,commit,author,action,eventName,ref
-        text: Released new version `${{ steps.semanticversion.outputs.new_version }}` of *${{ github.repository }}* to neverpile maven
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
-      if: always()
+        webhook: ${{ inputs.MATTERMOST_WEBHOOK_URL }}
+        webhook-type: incoming-webhook
+        payload: |
+          channel: 'neverpile-ci'
+          username: "GitHub"
+          text: Released failed! New version `${{ steps.semanticversion.outputs.new_version }}` of *${{ github.repository }}*

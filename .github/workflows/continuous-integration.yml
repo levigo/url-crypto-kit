@@ -9,7 +9,7 @@ on:
 
 jobs:
   call-continuous-integration:
-    uses: levigo/reusable-workflows-pub/.github/workflows/continuous-integration.yml@v1
+    uses: levigo/reusable-workflows-pub/.github/workflows/continuous-integration.yml@v2
     secrets: inherit
     with:
       mattermostChannel: 'neverpile-ci'
